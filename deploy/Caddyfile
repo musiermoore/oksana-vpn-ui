@@ -1,0 +1,42 @@
+# Generated from this template by scripts/setup-proxy.sh
+# Caddy automatically obtains and renews TLS certificates when a site block
+# uses a public domain name and does not disable TLS.
+
+{
+    email r.p200111@gmail.com
+}
+
+:8080 {
+    @panel host panel.oksana1984.ru
+    @public host public.oksana1984.ru www.public.oksana1984.ru
+
+    handle @panel {
+        reverse_proxy app:8000 {
+            header_up Host panel.oksana1984.ru
+            header_up X-Forwarded-Proto https
+            header_up X-Forwarded-Port 443
+            header_up X-Forwarded-Host panel.oksana1984.ru
+        }
+    }
+
+    handle @public {
+        handle /build/* {
+            reverse_proxy app:8000 {
+                header_up Host public.oksana1984.ru
+                header_up X-Forwarded-Proto https
+                header_up X-Forwarded-Port 443
+                header_up X-Forwarded-Host public.oksana1984.ru
+            }
+        }
+
+        handle {
+            reverse_proxy oksana-vpn-ui:80
+        }
+    }
+
+    respond "Unknown host" 404
+}
+
+oksana1984.ru {
+    reverse_proxy app:8000
+}
