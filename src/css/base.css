@@ -1,0 +1,5 @@
+:root { font-family: "Avenir Next", Avenir, "Segoe UI", sans-serif; }
+* { box-sizing: border-box; }
+body { margin: 0; }
+a { text-decoration: none; }
+button, input, select, textarea { font: inherit; }
