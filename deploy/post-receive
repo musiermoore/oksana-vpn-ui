@@ -23,7 +23,7 @@ cd "$TARGET"
 docker compose build ui
 docker compose up -d --no-deps ui
 
-for attempt in {1..30}; do
+for attempt in {1..45}; do
     health=$(docker inspect oksana-vpn-ui --format '{{.State.Health.Status}}' 2>/dev/null || true)
     if [[ "$health" == healthy ]]; then
         curl --fail --silent --show-error --output /dev/null http://194.147.215.202:8082/
