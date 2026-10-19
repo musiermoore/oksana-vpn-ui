@@ -1,9 +1,17 @@
 services:
   ui:
+    container_name: oksana-vpn-ui
     build:
       context: .
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set the Laravel mini app API URL in .env}
-    ports:
-      - "${UI_PORT:-8080}:80"
+    expose:
+      - "80"
+    networks:
+      - oksana-vpn
     restart: unless-stopped
+
+networks:
+  oksana-vpn:
+    external: true
+    name: oksana-vpn
