@@ -406,8 +406,14 @@ export const fetchTelegramAppProfile = async (profileUrl) => {
 
 const isPublicAppPath = () => {
     const path = window.location.pathname.replace(/\/+$/, '') || '/';
+    const hasLegacyPublicSession = getTelegramAppToken() !== ''
+        && getTelegramInitData() === ''
+        && getTelegramProfileId() === '';
 
-    return window.localStorage.getItem(SESSION_MODE_KEY) === 'public' || path === '/login' || path === '/register';
+    return window.localStorage.getItem(SESSION_MODE_KEY) === 'public'
+        || hasLegacyPublicSession
+        || path === '/login'
+        || path === '/register';
 };
 
 const publicLoginUrl = () => '/login';
@@ -497,7 +503,7 @@ export const ensureTelegramAppSession = async ({ authUrl, profileUrl }) => {
             error,
         });
 
-        if (getTelegramAppToken() === '' && getTelegramInitData() === '') {
+        if (getTelegramInitData() === '' && (getTelegramAppToken() === '' || error?.response?.status === 401)) {
             navigate('/login', { replace: true });
         }
 
