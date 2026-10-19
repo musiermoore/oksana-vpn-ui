@@ -5,6 +5,7 @@ services:
       context: .
       args:
         VITE_API_BASE_URL: ${VITE_API_BASE_URL:?Set the Laravel mini app API URL in .env}
+        API_URL: ${API_URL:?Set the auth API URL in .env}
     ports:
       - "194.147.215.202:8082:80"
     expose:

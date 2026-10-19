@@ -12,7 +12,7 @@ import {
     setTelegramAppToken,
     setTelegramAppSessionMode,
 } from '../../lib/telegramMiniApp';
-import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
 
 const form = ref({
     login: '',
@@ -27,7 +27,7 @@ const submit = async () => {
     error.value = '';
 
     try {
-        const response = await telegramMiniAppApi.post(telegramMiniAppEndpoints.authPassword, form.value);
+        const response = await telegramMiniAppApi.post(telegramMiniAppEndpoint(telegramMiniAppEndpoints.authPassword), form.value);
         const token = response.data?.token ?? '';
 
         if (token === '') {

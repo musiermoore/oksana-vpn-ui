@@ -1,3 +1,5 @@
+import { authenticateTelegramWithProvisioning } from './authFlow';
+
 import { navigate } from './navigation';
 
 const TOKEN_KEY = 'telegram-mini-app-token';
@@ -10,7 +12,10 @@ const BOOTSTRAP_DIAGNOSTIC_KEY = 'telegram-mini-app-last-bootstrap-diagnostic';
 const INIT_DATA_RETRY_ATTEMPTS = 8;
 const INIT_DATA_RETRY_DELAY_MS = 250;
 const BOOTSTRAP_DIAGNOSTIC_TTL_MS = 120000;
-const BOOTSTRAP_DIAGNOSTIC_URL = `${String(import.meta.env.VITE_API_BASE_URL || '/telegram-app').replace(/\/+$/, '')}/diagnostics/bootstrap`;
+const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/telegram-app').replace(/\/+$/, '');
+const BOOTSTRAP_DIAGNOSTIC_URL = `${BASE_API_URL}/diagnostics/bootstrap`;
+const PUBLIC_PROFILE_URL = `${BASE_API_URL}/me`;
+const PUBLIC_TELEGRAM_AUTH_URL = `${BASE_API_URL}/auth/telegram`;
 
 export const telegramAppLabels = {
     open: 'Открыт',
@@ -371,9 +376,12 @@ const resolveTelegramUserIdFromAuthData = (data) => {
 
 export const loginTelegramApp = async (authUrl, { attempts = INIT_DATA_RETRY_ATTEMPTS, delayMs = INIT_DATA_RETRY_DELAY_MS } = {}) => {
     const initData = await resolveTelegramInitData(attempts, delayMs);
-    const response = await window.axios.post(authUrl, {
-        init_data: initData,
-    });
+    const response = await authenticateTelegramWithProvisioning(
+        (url, payload) => window.axios.post(url, payload),
+        authUrl,
+        PUBLIC_TELEGRAM_AUTH_URL,
+        initData,
+    );
 
     const token = response?.data?.token ?? '';
 
@@ -424,7 +432,7 @@ const isPublicAuthPage = () => {
     return ['/login', '/register', '/public/login', '/public/register'].includes(currentPath);
 };
 
-const redirectToPublicLogin = (profileUrl = '') => {
+const redirectToPublicLogin = () => {
     if (isPublicAuthPage()) {
         return;
     }
@@ -439,18 +447,18 @@ const redirectToPublicLogin = (profileUrl = '') => {
     navigate(loginUrl, { replace: true });
 };
 
-const ensurePublicAppSession = async (profileUrl) => {
+const ensurePublicAppSession = async () => {
     if (getTelegramAppToken() === '') {
-        redirectToPublicLogin(profileUrl);
+        redirectToPublicLogin();
         throw new Error('Требуется вход.');
     }
 
     try {
-        return await fetchTelegramAppProfile(profileUrl);
+        return await fetchTelegramAppProfile(PUBLIC_PROFILE_URL);
     } catch (error) {
         if (error?.response?.status === 401) {
             setTelegramAppToken('');
-            redirectToPublicLogin(profileUrl);
+            redirectToPublicLogin();
             throw new Error('Требуется вход.');
         }
 
@@ -460,7 +468,7 @@ const ensurePublicAppSession = async (profileUrl) => {
 
 export const ensureTelegramAppSession = async ({ authUrl, profileUrl }) => {
     if (isPublicAppPath()) {
-        return ensurePublicAppSession(profileUrl);
+        return ensurePublicAppSession();
     }
 
     try {
@@ -512,7 +520,7 @@ export const ensureTelegramAppSession = async ({ authUrl, profileUrl }) => {
 };
 
 export const normalizeTelegramAppError = (error, fallback = 'Что-то пошло не так.') => {
-    return error?.response?.data?.message ?? error?.message ?? fallback;
+    return error?.response?.data?.message ?? error?.response?.data?.error ?? error?.message ?? fallback;
 };
 
 export const isTelegramDebtError = (error) => error?.response?.data?.type === 'debt';

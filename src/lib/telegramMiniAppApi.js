@@ -1,11 +1,16 @@
 import axios from 'axios';
 import { telegramAppHeaders } from './telegramMiniApp';
 import { getClientTimeZone } from './timezone';
+import { apiBaseUrlForPath } from './apiUrls';
 
 export const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/telegram-app').replace(/\/+$/, '');
+export const AUTH_API_URL = String(import.meta.env.API_URL || BASE_API_URL).replace(/\/+$/, '');
 
-export const telegramMiniAppApiEndpoint = (path = '') => `${BASE_API_URL}/${String(path).replace(/^\/+/, '')}`;
-export const telegramMiniAppEndpoint = telegramMiniAppApiEndpoint;
+export const telegramMiniAppEndpoint = (path = '') => `${BASE_API_URL}/${String(path).replace(/^\/+/, '')}`;
+export const telegramMiniAppApiEndpoint = (path = '') => {
+    const normalizedPath = String(path).replace(/^\/+/, '');
+    return `${apiBaseUrlForPath(normalizedPath, BASE_API_URL, AUTH_API_URL)}/${normalizedPath}`;
+};
 export const telegramMiniAppUrl = (path = '') => `/${String(path).replace(/^\/+|\/+$/g, '')}`.replace(/\/+$/, '') || '/';
 
 export const resolveApiUrl = (url) => {

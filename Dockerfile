@@ -4,7 +4,8 @@ COPY package*.json ./
 RUN npm ci --no-audit --no-fund
 COPY . .
 ARG VITE_API_BASE_URL
-RUN test -n "$VITE_API_BASE_URL" && VITE_API_BASE_URL="$VITE_API_BASE_URL" npm run build
+ARG API_URL
+RUN test -n "$VITE_API_BASE_URL" && test -n "$API_URL" && VITE_API_BASE_URL="$VITE_API_BASE_URL" API_URL="$API_URL" npm run build
 
 FROM caddy:2-alpine
 COPY Caddyfile /etc/caddy/Caddyfile
