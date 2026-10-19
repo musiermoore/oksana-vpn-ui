@@ -7,3 +7,5 @@ This is the standalone Vue 3 SPA for the OksanaVPN Telegram mini app. The Larave
 - Keep the old Laravel mini app pages in place until the new domain has been verified and the team deliberately retires them.
 - Run `npm test` and `npm run build` before finishing frontend changes.
 - When API behavior changes, follow `../wireguard-vpn-app/AGENTS.md` and its referenced flow documents.
+
+- The production container serves the SPA with Caddy at `http://194.147.215.202:8082/`; `deploy/post-receive` deploys pushes to `main` through the bare repository. Preserve the server `.env`.
