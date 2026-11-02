@@ -247,6 +247,10 @@ onMounted(async () => {
                         <AppIcon name="circleQuestion" />
                         <span>Нужна помощь?</span>
                     </Link>
+                    <Link :href="telegramMiniAppRoutes.credentials" class="tg-button tg-button--secondary">
+                        <AppIcon name="key" />
+                        <span>Данные для входа</span>
+                    </Link>
                 </div>
             </section>
 

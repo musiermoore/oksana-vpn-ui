@@ -117,7 +117,7 @@ onMounted(async () => {
         <section v-else class="tg-section">
             <div class="tg-page-header__copy">
                 <h2>Логин и пароль</h2>
-                <p>После настройки вы сможете входить в аккаунт по этим данным. Логин автоматически приводится к нижнему регистру.</p>
+                <p>Задайте логин и пароль для входа в аккаунт.</p>
             </div>
 
             <div v-if="success" class="tg-status-card tg-status-card--success" role="status" aria-live="polite">
@@ -144,12 +144,11 @@ onMounted(async () => {
                         autocapitalize="none"
                         spellcheck="false"
                         :aria-invalid="Boolean(loginError)"
-                        aria-describedby="credentials-login-hint credentials-login-error"
+                        :aria-describedby="loginError ? 'credentials-login-error' : undefined"
                         required
                         @input="loginError = ''; success = false"
                     >
-                    <span id="credentials-login-hint" class="tg-section__subtitle">3–64 символа: латинские буквы, цифры, точка, дефис или подчёркивание.</span>
-                    <span v-if="loginError" id="credentials-login-error" class="tg-error">{{ loginError }}</span>
+                    <span v-if="loginError" id="credentials-login-error" class="tg-error" role="alert">{{ loginError }}</span>
                 </label>
 
                 <label class="tg-field" for="credentials-password">
@@ -162,22 +161,21 @@ onMounted(async () => {
                             :type="showPassword ? 'text' : 'password'"
                             autocomplete="new-password"
                             :aria-invalid="Boolean(passwordError)"
-                            aria-describedby="credentials-password-hint credentials-password-error"
+                            :aria-describedby="passwordError ? 'credentials-password-error' : undefined"
                             required
                             @input="passwordError = ''; success = false"
                         >
                         <button
-                            class="tg-button tg-button--secondary credentials-password-toggle"
+                            class="tg-icon-button credentials-password-toggle"
                             type="button"
                             :aria-pressed="showPassword"
                             :aria-label="showPassword ? 'Скрыть пароль' : 'Показать пароль'"
                             @click="showPassword = !showPassword"
                         >
-                            {{ showPassword ? 'Скрыть' : 'Показать' }}
+                            <AppIcon :name="showPassword ? 'eyeSlash' : 'eye'" />
                         </button>
                     </div>
-                    <span id="credentials-password-hint" class="tg-section__subtitle">8–72 байта в UTF-8. Пароль будет очищен после отправки.</span>
-                    <span v-if="passwordError" id="credentials-password-error" class="tg-error">{{ passwordError }}</span>
+                    <span v-if="passwordError" id="credentials-password-error" class="tg-error" role="alert">{{ passwordError }}</span>
                 </label>
 
                 <p v-if="error" class="tg-error" role="alert">{{ error }}</p>
@@ -193,18 +191,27 @@ onMounted(async () => {
 
 <style scoped>
 .credentials-password-field {
-    display: flex;
-    align-items: stretch;
-    gap: 8px;
+    position: relative;
 }
 
 .credentials-password-field .tg-input {
-    min-width: 0;
-    flex: 1;
+    padding-right: 54px;
 }
 
 .credentials-password-toggle {
-    flex: 0 0 auto;
-    padding: 0 12px;
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: grid;
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    place-items: center;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--tg-text-muted);
+    transform: translateY(-50%);
 }
 </style>
