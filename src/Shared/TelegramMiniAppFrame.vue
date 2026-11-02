@@ -34,6 +34,7 @@ const navItems = computed(() => ([
     { href: telegramMiniAppRoutes.wireguard, label: 'Конфиги', icon: 'shield', keys: ['/wireguard', '/vless', '/vless-wl'] },
     { href: telegramMiniAppRoutes.payments, label: 'Подписка', icon: 'receipt', keys: ['/payments'] },
     { href: telegramMiniAppRoutes.help, label: 'Помощь', icon: 'circleQuestion', keys: ['/help', '/support', '/chats'] },
+    { href: telegramMiniAppRoutes.credentials, label: 'Доступ', icon: 'key', keys: ['/credentials'] },
     {
         href: telegramMiniAppRoutes.giveaway,
         label: 'Розыгрыш',
