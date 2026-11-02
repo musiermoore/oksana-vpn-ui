@@ -22,6 +22,7 @@ const processing = ref(false);
 const processingTelegram = ref(false);
 const processingOidc = ref(false);
 const error = ref('');
+const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
 
 const API_URL = String(import.meta.env.API_URL || '').replace(/\/+$/, '');
 
@@ -122,6 +123,7 @@ onMounted(exchangeTelegramOidcTicket);
         title="OksanaVPN"
         description="Вход в личный кабинет."
         :show-navigation="false"
+        browser-frame
     >
         <section class="tg-section">
             <div class="tg-page-header__copy">
@@ -130,14 +132,14 @@ onMounted(exchangeTelegramOidcTicket);
             </div>
 
             <form class="tg-surface-card tg-stack" @submit.prevent="submit">
-                <button class="tg-button" type="button" :disabled="processingOidc || processingTelegram || processing" @click="submitTelegramOidc">
+                <button v-if="!isTelegramMiniApp" class="tg-button" type="button" :disabled="processingOidc || processingTelegram || processing" @click="submitTelegramOidc">
                     <AppIcon name="send" />
-                    {{ processingOidc ? 'Завершаем вход...' : 'Login with Telegram (Web)' }}
+                    {{ processingOidc ? 'Завершаем вход...' : 'Войти через Telegram' }}
                 </button>
 
-                <button class="tg-button tg-button--secondary" type="button" :disabled="processingOidc || processingTelegram || processing" @click="submitTelegram">
+                <button v-else class="tg-button" type="button" :disabled="processingOidc || processingTelegram || processing" @click="submitTelegram">
                     <AppIcon name="send" />
-                    {{ processingTelegram ? 'Проверяем Telegram...' : 'Login with Telegram Mini App' }}
+                    {{ processingTelegram ? 'Проверяем Telegram...' : 'Войти через Telegram' }}
                 </button>
 
                 <label class="tg-field">

@@ -61,6 +61,40 @@
     padding: 16px 16px 24px;
 }
 
+@media (min-width: 600px) {
+    .tg-app--browser-frame {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 32px;
+        background:
+            radial-gradient(circle at 16% 12%, rgba(108, 76, 245, 0.12), transparent 28%),
+            linear-gradient(145deg, #e9edf5, #dce2ed);
+    }
+
+    .tg-app--browser-frame .tg-shell {
+        width: min(100%, 430px);
+        max-height: calc(100vh - 64px);
+        overflow-y: auto;
+        border: 1px solid rgba(114, 124, 145, 0.28);
+        border-radius: 28px;
+        background: var(--tg-bg);
+        box-shadow: 0 24px 70px rgba(31, 41, 55, 0.2), 0 4px 12px rgba(31, 41, 55, 0.08);
+        scrollbar-width: thin;
+    }
+
+    .tg-app--browser-frame[data-theme="dark"] {
+        background:
+            radial-gradient(circle at 16% 12%, rgba(124, 98, 255, 0.22), transparent 30%),
+            linear-gradient(145deg, #171d2a, #0c1019);
+    }
+
+    .tg-app--browser-frame[data-theme="dark"] .tg-shell {
+        border-color: rgba(142, 155, 180, 0.3);
+        box-shadow: 0 28px 76px rgba(0, 0, 0, 0.48), 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+}
+
 .tg-main {
     display: grid;
     gap: 24px;

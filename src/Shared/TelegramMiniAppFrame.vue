@@ -17,6 +17,10 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    browserFrame: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const theme = ref('light');
@@ -108,7 +112,7 @@ watch(theme, (value) => {
 <template>
     <Head :title="title" />
 
-    <div class="tg-app" :data-theme="theme">
+    <div class="tg-app" :class="{ 'tg-app--browser-frame': browserFrame }" :data-theme="theme">
         <div class="tg-shell">
             <header class="tg-topbar">
                 <div class="tg-brand">
