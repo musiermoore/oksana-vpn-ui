@@ -2,7 +2,7 @@
 import Head from '../../Shared/SpaHead.vue';
 import Link from '../../Shared/SpaLink.vue';
 import { navigate } from '../../lib/navigation';
-import { ref } from 'vue';
+import { onMounted, ref } from 'vue';
 import AppIcon from '../../Shared/AppIcon.vue';
 import TelegramMiniAppFrame from '../../Shared/TelegramMiniAppFrame.vue';
 import {
@@ -20,7 +20,58 @@ const form = ref({
 });
 const processing = ref(false);
 const processingTelegram = ref(false);
+const processingOidc = ref(false);
 const error = ref('');
+
+const API_URL = String(import.meta.env.API_URL || '').replace(/\/+$/, '');
+
+const exchangeTelegramOidcTicket = async () => {
+    const fragment = window.location.hash.replace(/^#/, '');
+    const fragmentParams = new URLSearchParams(fragment);
+    const ticket = fragmentParams.get('telegram_oidc_ticket')?.trim() ?? '';
+
+    if (ticket === '') {
+        return;
+    }
+
+    fragmentParams.delete('telegram_oidc_ticket');
+    const remainingFragment = fragmentParams.toString();
+    const cleanUrl = `${window.location.pathname}${window.location.search}${remainingFragment ? `#${remainingFragment}` : ''}`;
+    window.history.replaceState(window.history.state, '', cleanUrl);
+
+    processingOidc.value = true;
+    error.value = '';
+
+    try {
+        const response = await telegramMiniAppApi.post(
+            telegramMiniAppApiEndpoint('auth/telegram/oidc/exchange'),
+            { ticket },
+        );
+        const token = response.data?.access_token ?? '';
+
+        if (token === '') {
+            throw new Error('Не удалось выполнить вход через Telegram.');
+        }
+
+        setTelegramAppToken(token);
+        setTelegramAppSessionMode('public');
+        setTelegramAppTelegramUserId('');
+        navigate(telegramMiniAppRoutes.home);
+    } catch (requestError) {
+        error.value = requestError?.response?.data?.message ?? requestError?.message ?? 'Не удалось выполнить вход через Telegram.';
+    } finally {
+        processingOidc.value = false;
+    }
+};
+
+const submitTelegramOidc = () => {
+    if (API_URL === '') {
+        error.value = 'Вход через Telegram временно недоступен.';
+        return;
+    }
+
+    window.location.assign(`${API_URL}/auth/telegram/oidc/start`);
+};
 
 const submit = async () => {
     processing.value = true;
@@ -60,6 +111,8 @@ const submitTelegram = async () => {
         processingTelegram.value = false;
     }
 };
+
+onMounted(exchangeTelegramOidcTicket);
 </script>
 
 <template>
@@ -77,9 +130,14 @@ const submitTelegram = async () => {
             </div>
 
             <form class="tg-surface-card tg-stack" @submit.prevent="submit">
-                <button class="tg-button" type="button" :disabled="processingTelegram || processing" @click="submitTelegram">
+                <button class="tg-button" type="button" :disabled="processingOidc || processingTelegram || processing" @click="submitTelegramOidc">
                     <AppIcon name="send" />
-                    {{ processingTelegram ? 'Проверяем Telegram...' : 'Login with Telegram' }}
+                    {{ processingOidc ? 'Завершаем вход...' : 'Login with Telegram (Web)' }}
+                </button>
+
+                <button class="tg-button tg-button--secondary" type="button" :disabled="processingOidc || processingTelegram || processing" @click="submitTelegram">
+                    <AppIcon name="send" />
+                    {{ processingTelegram ? 'Проверяем Telegram...' : 'Login with Telegram Mini App' }}
                 </button>
 
                 <label class="tg-field">
