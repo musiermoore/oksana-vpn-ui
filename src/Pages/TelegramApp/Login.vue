@@ -123,7 +123,6 @@ onMounted(exchangeTelegramOidcTicket);
         title="OksanaVPN"
         description="Вход в личный кабинет."
         :show-navigation="false"
-        browser-frame
     >
         <section class="tg-section">
             <div class="tg-page-header__copy">

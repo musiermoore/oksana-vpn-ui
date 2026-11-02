@@ -63,10 +63,12 @@
 
 @media (min-width: 600px) {
     .tg-app--browser-frame {
+        --browser-frame-height: min(820px, calc(100vh - 64px));
         display: flex;
         align-items: center;
         justify-content: center;
         padding: 32px;
+        overflow: hidden;
         background:
             radial-gradient(circle at 16% 12%, rgba(108, 76, 245, 0.12), transparent 28%),
             linear-gradient(145deg, #e9edf5, #dce2ed);
@@ -74,7 +76,7 @@
 
     .tg-app--browser-frame .tg-shell {
         width: min(100%, 430px);
-        max-height: calc(100vh - 64px);
+        height: var(--browser-frame-height);
         overflow-y: auto;
         border: 1px solid rgba(114, 124, 145, 0.28);
         border-radius: 28px;
@@ -92,6 +94,22 @@
     .tg-app--browser-frame[data-theme="dark"] .tg-shell {
         border-color: rgba(142, 155, 180, 0.3);
         box-shadow: 0 28px 76px rgba(0, 0, 0, 0.48), 0 4px 14px rgba(0, 0, 0, 0.3);
+    }
+
+    .tg-app--browser-frame--with-nav .tg-shell {
+        padding-bottom: 104px;
+    }
+
+    .tg-app--browser-frame .tg-bottom-nav {
+        bottom: calc((100vh - var(--browser-frame-height)) / 2);
+        border-right: 1px solid rgba(114, 124, 145, 0.28);
+        border-bottom: 1px solid rgba(114, 124, 145, 0.28);
+        border-left: 1px solid rgba(114, 124, 145, 0.28);
+        border-radius: 0 0 28px 28px;
+    }
+
+    .tg-app--browser-frame[data-theme="dark"] .tg-bottom-nav {
+        border-color: rgba(142, 155, 180, 0.3);
     }
 }
 

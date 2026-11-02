@@ -17,12 +17,9 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
-    browserFrame: {
-        type: Boolean,
-        default: false,
-    },
 });
 
+const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
 const theme = ref('light');
 const giveawaySummary = ref({
     active_giveaways_count: 0,
@@ -113,7 +110,14 @@ watch(theme, (value) => {
 <template>
     <Head :title="title" />
 
-    <div class="tg-app" :class="{ 'tg-app--browser-frame': browserFrame }" :data-theme="theme">
+    <div
+        class="tg-app"
+        :class="{
+            'tg-app--browser-frame': !isTelegramMiniApp,
+            'tg-app--browser-frame--with-nav': !isTelegramMiniApp && showNavigation,
+        }"
+        :data-theme="theme"
+    >
         <div class="tg-shell">
             <header class="tg-topbar">
                 <div class="tg-brand">
