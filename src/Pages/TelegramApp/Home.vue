@@ -5,6 +5,8 @@ import AppIcon from '../../Shared/AppIcon.vue';
 import TelegramMiniAppFrame from '../../Shared/TelegramMiniAppFrame.vue';
 import {
     ensureTelegramAppSession,
+    getTelegramAppAuthSource,
+    getTelegramAppSessionMode,
     normalizeTelegramAppError,
     openTelegramExternalLink,
     redirectFromTelegramStartParam,
@@ -12,8 +14,11 @@ import {
 import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
 import { telegramCommunityLinks } from '../../lib/telegramChatLinks';
 
-const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
-const communityLinks = telegramCommunityLinks(isTelegramMiniApp);
+const authSource = getTelegramAppAuthSource();
+const isTelegramCommunityContext = Boolean(window.Telegram?.WebApp?.initData)
+    || authSource === 'telegram'
+    || (authSource === '' && getTelegramAppSessionMode() === 'telegram');
+const communityLinks = telegramCommunityLinks(isTelegramCommunityContext);
 
 const state = ref('loading');
 const error = ref('');

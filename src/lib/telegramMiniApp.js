@@ -26,6 +26,7 @@ export const telegramAppLabels = {
 
 export const getTelegramAppToken = () => window.localStorage.getItem(TOKEN_KEY) ?? '';
 export const setTelegramAppSessionMode = (mode) => window.localStorage.setItem(SESSION_MODE_KEY, mode);
+export const getTelegramAppSessionMode = () => window.localStorage.getItem(SESSION_MODE_KEY) ?? '';
 export const getTelegramAppAuthSource = () => window.localStorage.getItem(AUTH_SOURCE_KEY) ?? '';
 export const setTelegramAppAuthSource = (source) => {
     if (source === 'telegram' || source === 'web') {
