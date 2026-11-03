@@ -117,8 +117,13 @@ onMounted(async () => {
         <section v-else class="tg-section">
             <div class="tg-page-header__copy">
                 <h2>Логин и пароль</h2>
-                <p>Задайте логин и пароль для входа в аккаунт.</p>
+                <p>Сохраните логин и пароль, чтобы войти на сайт и управлять подпиской, если вы не сможете открыть Telegram.</p>
             </div>
+
+            <a class="tg-button tg-button--secondary" href="https://public.oksana1984.ru/login" target="_blank" rel="noopener noreferrer">
+                <AppIcon name="arrowUpRight" />
+                <span>Открыть вход на сайте</span>
+            </a>
 
             <div v-if="success" class="tg-status-card tg-status-card--success" role="status" aria-live="polite">
                 <div class="tg-status-card__top">

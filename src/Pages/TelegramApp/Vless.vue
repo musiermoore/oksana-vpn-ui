@@ -312,7 +312,7 @@ onBeforeUnmount(() => {
                     </button>
                     <button class="tg-button tg-button--soft" type="button" @click="copyText(qrCopyLink)">
                         <AppIcon name="copy" />
-                        <span>Скопировать ссылку</span>
+                        <span>Скопировать</span>
                     </button>
                 </div>
 

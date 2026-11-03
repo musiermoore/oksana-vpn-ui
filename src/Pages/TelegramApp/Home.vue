@@ -10,7 +10,10 @@ import {
     redirectFromTelegramStartParam,
 } from '../../lib/telegramMiniApp';
 import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
-import { telegramChatLinks } from '../../lib/telegramChatLinks';
+import { telegramCommunityLinks } from '../../lib/telegramChatLinks';
+
+const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
+const communityLinks = telegramCommunityLinks(isTelegramMiniApp);
 
 const state = ref('loading');
 const error = ref('');
@@ -264,7 +267,7 @@ onMounted(async () => {
 
                 <div class="tg-inline-actions">
                     <button
-                        v-for="item in telegramChatLinks"
+                        v-for="item in communityLinks"
                         :key="item.title"
                         class="tg-button tg-button--secondary"
                         type="button"
@@ -320,7 +323,7 @@ onMounted(async () => {
                     <div class="tg-inline-actions">
                         <button class="tg-button tg-button--secondary" type="button" @click="copyReferralLink">
                             <AppIcon name="copy" />
-                            <span>Скопировать ссылку</span>
+                            <span>Скопировать</span>
                         </button>
                         <button class="tg-button tg-button--soft" type="button" @click="shareReferralLink">
                             <AppIcon name="send" />

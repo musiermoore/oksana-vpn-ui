@@ -15,11 +15,13 @@ import SupportShow from './Pages/TelegramApp/SupportShow.vue';
 import Giveaway from './Pages/TelegramApp/Giveaway.vue';
 import Referrals from './Pages/TelegramApp/Referrals.vue';
 import Credentials from './Pages/TelegramApp/Credentials.vue';
+import Profile from './Pages/TelegramApp/Profile.vue';
 
 const pages = {
     '/': Home,
     '/login': Login,
     '/credentials': Credentials,
+    '/profile': Profile,
     '/register': Register,
     '/payments': Payments,
     '/wireguard': WireGuard,

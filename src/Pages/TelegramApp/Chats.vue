@@ -8,13 +8,13 @@ import {
     openTelegramExternalLink,
 } from '../../lib/telegramMiniApp';
 import { telegramMiniAppApiEndpoint, telegramMiniAppEndpoints } from '../../lib/telegramMiniAppApi';
-import { telegramChatLinks } from '../../lib/telegramChatLinks';
+import { telegramCommunityLinks } from '../../lib/telegramChatLinks';
 
 const state = ref('loading');
 const error = ref('');
 const user = ref(null);
 
-const chatLinks = telegramChatLinks;
+const chatLinks = telegramCommunityLinks(true);
 
 const retry = () => {
     window.location.reload();

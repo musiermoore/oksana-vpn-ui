@@ -9,7 +9,6 @@ import {
 import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
 import { formatDateTimeInTimeZone, getClientTimeZone } from '../../lib/timezone';
 
-const GIVEAWAY_SUMMARY_REFRESH_EVENT = 'telegram-app:refresh-giveaway-summary';
 const state = ref('loading');
 const error = ref('');
 const user = ref(null);
@@ -36,7 +35,6 @@ const participate = async () => {
 
     participant.value = response.data?.participant ?? null;
     actionStatus.value = 'Вы участвуете в розыгрыше.';
-    window.dispatchEvent(new CustomEvent(GIVEAWAY_SUMMARY_REFRESH_EVENT));
 };
 
 const retry = () => window.location.reload();
@@ -190,7 +188,7 @@ onMounted(async () => {
                     <div class="tg-inline-actions">
                         <Link class="tg-button tg-button--secondary" :href="telegramMiniAppRoutes.referrals">
                             <AppIcon name="copy" />
-                            <span>Скопировать ссылку</span>
+                            <span>Скопировать</span>
                         </Link>
                         <Link class="tg-button tg-button--soft" :href="telegramMiniAppRoutes.referrals">
                             <AppIcon name="send" />

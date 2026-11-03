@@ -186,7 +186,7 @@ onMounted(async () => {
                 <div class="tg-inline-actions">
                     <button class="tg-button tg-button--secondary" type="button" @click="copyReferralLink">
                         <AppIcon name="copy" />
-                        <span>Скопировать ссылку</span>
+                        <span>Скопировать</span>
                     </button>
                     <button class="tg-button tg-button--soft" type="button" @click="shareReferralLink">
                         <AppIcon name="send" />

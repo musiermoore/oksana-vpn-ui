@@ -40,6 +40,7 @@ telegramMiniAppApi.interceptors.request.use((config) => {
 export const telegramMiniAppRoutes = {
     login: '/login',
     credentials: '/credentials',
+    profile: '/profile',
     register: '/register',
     home: '/',
     wireguard: '/wireguard',

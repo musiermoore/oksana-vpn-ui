@@ -11,11 +11,16 @@ import {
     setTelegramAppTelegramUserId,
     setTelegramAppToken,
     setTelegramAppSessionMode,
+    openTelegramExternalLink,
 } from '../../lib/telegramMiniApp';
 import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { telegramCommunityLinks } from '../../lib/telegramChatLinks';
+
+const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
+const telegramLogin = String(telegramUser?.username || telegramUser?.id || '').replace(/^@/, '');
 
 const form = ref({
-    login: '',
+    login: telegramLogin,
     password: '',
 });
 const processing = ref(false);
@@ -23,6 +28,7 @@ const processingTelegram = ref(false);
 const processingOidc = ref(false);
 const error = ref('');
 const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
+const communityLinks = telegramCommunityLinks(isTelegramMiniApp);
 
 const API_URL = String(import.meta.env.API_URL || '').replace(/\/+$/, '');
 
@@ -174,6 +180,28 @@ onMounted(exchangeTelegramOidcTicket);
             <Link :href="telegramMiniAppRoutes.register" class="tg-button tg-button--secondary">
                 Создать аккаунт
             </Link>
+
+            <section class="tg-section">
+                <div class="tg-section__head">
+                    <div>
+                        <div class="tg-section__title">Сообщество</div>
+                        <div class="tg-section__subtitle">Новости, общий чат и бот OksanaVPN.</div>
+                    </div>
+                </div>
+
+                <div class="tg-inline-actions">
+                    <button
+                        v-for="item in communityLinks"
+                        :key="item.title"
+                        class="tg-button tg-button--secondary"
+                        type="button"
+                        @click="openTelegramExternalLink(item.url)"
+                    >
+                        <AppIcon name="chat" />
+                        <span>{{ item.title }}</span>
+                    </button>
+                </div>
+            </section>
         </section>
     </TelegramMiniAppFrame>
 </template>
