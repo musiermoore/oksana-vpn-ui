@@ -1,6 +1,5 @@
 <script setup>
 import Head from '../../Shared/SpaHead.vue';
-import Link from '../../Shared/SpaLink.vue';
 import { navigate } from '../../lib/navigation';
 import { onMounted, ref } from 'vue';
 import AppIcon from '../../Shared/AppIcon.vue';
@@ -176,10 +175,6 @@ onMounted(exchangeTelegramOidcTicket);
 
                 <p v-if="error" class="tg-error">{{ error }}</p>
             </form>
-
-            <Link :href="telegramMiniAppRoutes.register" class="tg-button tg-button--secondary">
-                Создать аккаунт
-            </Link>
 
             <section class="tg-section">
                 <div class="tg-section__head">
