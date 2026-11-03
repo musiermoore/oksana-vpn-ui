@@ -3,33 +3,42 @@ import { computed, onMounted, ref } from 'vue';
 import AppIcon from '../../Shared/AppIcon.vue';
 import TelegramMiniAppFrame from '../../Shared/TelegramMiniAppFrame.vue';
 import Link from '../../Shared/SpaLink.vue';
+import { navigate } from '../../lib/navigation';
 import {
     ensureTelegramAppSession,
-    getTelegramAppTelegramUserId,
     normalizeTelegramAppError,
     redirectFromTelegramStartParam,
+    setTelegramAppToken,
 } from '../../lib/telegramMiniApp';
-import { telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
 
 const state = ref('loading');
 const error = ref('');
 const user = ref(null);
+const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
 
 const telegramUsername = computed(() => {
-    const username = String(user.value?.telegram_username ?? window.Telegram?.WebApp?.initDataUnsafe?.user?.username ?? '').trim().replace(/^@/, '');
-    return username;
+    const telegram = String(user.value?.telegram ?? '').trim();
+    if (!telegram) return '';
+    return telegram.startsWith('@') ? telegram : `@${telegram}`;
 });
 
-const telegramId = computed(() => String(
-    user.value?.telegram_id
-    ?? window.Telegram?.WebApp?.initDataUnsafe?.user?.id
-    ?? getTelegramAppTelegramUserId()
-    ?? '',
-).trim());
+const telegramId = computed(() => String(user.value?.telegram_id ?? '').trim());
 
-const welcomeName = computed(() => telegramUsername.value ? `@${telegramUsername.value}` : telegramId.value);
+const welcomeName = computed(() => telegramUsername.value || telegramId.value);
 
 const retry = () => window.location.reload();
+
+const logout = async () => {
+    try {
+        await telegramMiniAppApi.post(telegramMiniAppApiEndpoint(telegramMiniAppEndpoints.authLogout));
+    } catch {
+        // Clear the local session even when the API is unreachable.
+    } finally {
+        setTelegramAppToken('');
+        navigate(telegramMiniAppRoutes.login, { replace: true });
+    }
+};
 
 onMounted(async () => {
     if (redirectFromTelegramStartParam(telegramMiniAppRoutes)) return;
@@ -73,6 +82,11 @@ onMounted(async () => {
                     <AppIcon name="key" />
                     <span>Данные для входа</span>
                 </Link>
+
+                <button v-if="!isTelegramMiniApp" class="tg-button tg-button--secondary" type="button" @click="logout">
+                    <AppIcon name="arrowRight" />
+                    <span>Выйти</span>
+                </button>
             </div>
         </section>
     </TelegramMiniAppFrame>

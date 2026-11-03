@@ -57,6 +57,7 @@ export const telegramMiniAppRoutes = {
 export const telegramMiniAppEndpoints = {
     authTelegram: 'auth/telegram',
     authPassword: 'auth/login',
+    authLogout: 'auth/logout',
     authCredentials: 'auth/credentials',
     authRegister: 'auth/register',
     profile: 'auth/me',

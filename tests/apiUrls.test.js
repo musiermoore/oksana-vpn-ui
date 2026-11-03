@@ -6,7 +6,7 @@ const base = 'https://panel.oksana1984.ru/telegram-app';
 const auth = 'https://api.oksana1984.ru/api/v1';
 
 test('auth paths, including Telegram OIDC exchange, use the separate API', () => {
-    for (const path of ['auth/me', 'auth/telegram', 'auth/login', 'auth/telegram/oidc/exchange']) {
+    for (const path of ['auth/me', 'auth/telegram', 'auth/login', 'auth/logout', 'auth/telegram/oidc/exchange']) {
         assert.equal(apiBaseUrlForPath(path, base, auth), auth);
     }
 

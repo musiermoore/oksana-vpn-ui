@@ -2,6 +2,7 @@ const authPaths = new Set([
     'auth/me',
     'auth/telegram',
     'auth/login',
+    'auth/logout',
     'auth/credentials',
     'auth/telegram/oidc/exchange',
 ]);

@@ -10,6 +10,7 @@ import {
     setTelegramAppTelegramUserId,
     setTelegramAppToken,
     setTelegramAppSessionMode,
+    setTelegramAppAuthSource,
     openTelegramExternalLink,
 } from '../../lib/telegramMiniApp';
 import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
@@ -61,6 +62,7 @@ const exchangeTelegramOidcTicket = async () => {
 
         setTelegramAppToken(token);
         setTelegramAppSessionMode('public');
+        setTelegramAppAuthSource(response.data?.source);
         setTelegramAppTelegramUserId('');
         navigate(telegramMiniAppRoutes.home);
     } catch (requestError) {
@@ -93,6 +95,7 @@ const submit = async () => {
 
         setTelegramAppToken(token);
         setTelegramAppSessionMode('public');
+        setTelegramAppAuthSource(response.data?.source);
         setTelegramAppTelegramUserId(response.data?.telegram_id ?? response.data?.user?.telegram_id ?? '');
         navigate(telegramMiniAppRoutes.home);
     } catch (requestError) {

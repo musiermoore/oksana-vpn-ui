@@ -4,6 +4,7 @@ import { navigate } from './navigation';
 
 const TOKEN_KEY = 'telegram-mini-app-token';
 const SESSION_MODE_KEY = 'telegram-mini-app-session-mode';
+const AUTH_SOURCE_KEY = 'telegram-mini-app-auth-source';
 const TELEGRAM_USER_ID_KEY = 'telegram-mini-app-telegram-user-id';
 const START_PARAM_KEY = 'telegram-mini-app-last-start-param';
 const START_PARAM_AUTH_KEY = 'telegram-mini-app-last-auth-start-param';
@@ -25,6 +26,15 @@ export const telegramAppLabels = {
 
 export const getTelegramAppToken = () => window.localStorage.getItem(TOKEN_KEY) ?? '';
 export const setTelegramAppSessionMode = (mode) => window.localStorage.setItem(SESSION_MODE_KEY, mode);
+export const getTelegramAppAuthSource = () => window.localStorage.getItem(AUTH_SOURCE_KEY) ?? '';
+export const setTelegramAppAuthSource = (source) => {
+    if (source === 'telegram' || source === 'web') {
+        window.localStorage.setItem(AUTH_SOURCE_KEY, source);
+        return;
+    }
+
+    window.localStorage.removeItem(AUTH_SOURCE_KEY);
+};
 
 export const getTelegramAppTelegramUserId = () => window.localStorage.getItem(TELEGRAM_USER_ID_KEY) ?? '';
 
@@ -37,6 +47,7 @@ export const setTelegramAppToken = (token) => {
     window.localStorage.removeItem(TOKEN_KEY);
     window.localStorage.removeItem(TELEGRAM_USER_ID_KEY);
     window.localStorage.removeItem(SESSION_MODE_KEY);
+    window.localStorage.removeItem(AUTH_SOURCE_KEY);
 };
 
 export const setTelegramAppTelegramUserId = (telegramUserId) => {
@@ -391,6 +402,7 @@ export const loginTelegramApp = async (authUrl, { attempts = INIT_DATA_RETRY_ATT
 
     setTelegramAppToken(token);
     setTelegramAppSessionMode('telegram');
+    setTelegramAppAuthSource(response?.data?.source);
     setTelegramAppTelegramUserId(resolveTelegramUserIdFromAuthData(response.data));
 
     return response.data;
