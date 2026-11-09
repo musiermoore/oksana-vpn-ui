@@ -14,8 +14,9 @@ const INIT_DATA_RETRY_ATTEMPTS = 8;
 const INIT_DATA_RETRY_DELAY_MS = 250;
 const BOOTSTRAP_DIAGNOSTIC_TTL_MS = 120000;
 const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/telegram-app').replace(/\/+$/, '');
+const AUTH_API_URL = String(import.meta.env.API_URL || BASE_API_URL).replace(/\/+$/, '');
 const BOOTSTRAP_DIAGNOSTIC_URL = `${BASE_API_URL}/diagnostics/bootstrap`;
-const PUBLIC_PROFILE_URL = `${BASE_API_URL}/me`;
+const PUBLIC_PROFILE_URL = `${AUTH_API_URL}/auth/me`;
 const PUBLIC_TELEGRAM_AUTH_URL = `${BASE_API_URL}/auth/telegram`;
 
 export const telegramAppLabels = {
@@ -460,14 +461,14 @@ const redirectToPublicLogin = () => {
     navigate(loginUrl, { replace: true });
 };
 
-const ensurePublicAppSession = async () => {
+const ensurePublicAppSession = async (profileUrl = PUBLIC_PROFILE_URL) => {
     if (getTelegramAppToken() === '') {
         redirectToPublicLogin();
         throw new Error('Требуется вход.');
     }
 
     try {
-        return await fetchTelegramAppProfile(PUBLIC_PROFILE_URL);
+        return await fetchTelegramAppProfile(profileUrl);
     } catch (error) {
         if (error?.response?.status === 401) {
             setTelegramAppToken('');
@@ -481,7 +482,7 @@ const ensurePublicAppSession = async () => {
 
 export const ensureTelegramAppSession = async ({ authUrl, profileUrl }) => {
     if (isPublicAppPath()) {
-        return ensurePublicAppSession();
+        return ensurePublicAppSession(profileUrl);
     }
 
     try {
