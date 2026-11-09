@@ -81,7 +81,7 @@ onMounted(async () => {
     if (redirectFromTelegramStartParam(telegramMiniAppRoutes)) return;
 
     try {
-        await ensureTelegramAppSession({
+        const user = await ensureTelegramAppSession({
             authUrl: telegramMiniAppApiEndpoint(telegramMiniAppEndpoints.authTelegram),
             profileUrl: telegramMiniAppApiEndpoint(telegramMiniAppEndpoints.profile),
         });
@@ -89,6 +89,9 @@ onMounted(async () => {
             navigate(telegramMiniAppRoutes.login, { replace: true });
             return;
         }
+        const existingLogin = String(user?.login ?? '').trim();
+        const telegramUsername = String(user?.telegram ?? user?.username ?? '').trim();
+        login.value = (existingLogin || telegramUsername).replace(/^@/, '');
         state.value = 'ready';
     } catch (requestError) {
         state.value = 'error';

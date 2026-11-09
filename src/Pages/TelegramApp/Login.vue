@@ -13,7 +13,7 @@ import {
     setTelegramAppAuthSource,
     openTelegramExternalLink,
 } from '../../lib/telegramMiniApp';
-import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
 import { telegramCommunityLinks } from '../../lib/telegramChatLinks';
 
 const telegramUser = window.Telegram?.WebApp?.initDataUnsafe?.user;
@@ -86,8 +86,8 @@ const submit = async () => {
     error.value = '';
 
     try {
-        const response = await telegramMiniAppApi.post(telegramMiniAppEndpoint(telegramMiniAppEndpoints.authPassword), form.value);
-        const token = response.data?.token ?? '';
+        const response = await telegramMiniAppApi.post(telegramMiniAppApiEndpoint(telegramMiniAppEndpoints.authPassword), form.value);
+        const token = response.data?.access_token ?? response.data?.token ?? '';
 
         if (token === '') {
             throw new Error('Не удалось выполнить вход.');
@@ -99,7 +99,7 @@ const submit = async () => {
         setTelegramAppTelegramUserId(response.data?.telegram_id ?? response.data?.user?.telegram_id ?? '');
         navigate(telegramMiniAppRoutes.home);
     } catch (requestError) {
-        error.value = requestError?.response?.data?.message ?? requestError?.message ?? 'Не удалось выполнить вход.';
+        error.value = requestError?.response?.data?.message ?? requestError?.response?.data?.error ?? requestError?.message ?? 'Не удалось выполнить вход.';
     } finally {
         processing.value = false;
     }
