@@ -10,7 +10,8 @@ import {
     normalizeTelegramAppError,
     openTelegramExternalLink,
 } from '../../lib/telegramMiniApp';
-import { telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { BASE_API_URL, telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { buildVlessLinkApiUrl, normalizeVlessLinkResponse } from '../../lib/vlessLink';
 
 const state = ref('loading');
 const step = ref('menu');
@@ -132,9 +133,11 @@ const loadData = async () => {
         profileUrl: telegramMiniAppApiEndpoint(telegramMiniAppEndpoints.profile),
     });
 
-    const response = await telegramMiniAppApi.get(telegramMiniAppEndpoints.vlessLink);
+    const response = await telegramMiniAppApi.get(
+        buildVlessLinkApiUrl(BASE_API_URL, telegramMiniAppEndpoints.vlessLink),
+    );
 
-    links.value = response.data ?? null;
+    links.value = normalizeVlessLinkResponse(response.data);
     state.value = 'ready';
 };
 
@@ -262,7 +265,7 @@ onBeforeUnmount(() => {
                     </div>
                 </div>
 
-                <div class="tg-surface-card tg-stack">
+                <div v-if="links?.show_raw_link" class="tg-surface-card tg-stack">
                     <div class="tg-section__head">
                         <div>
                             <div class="tg-section__title">Старая подписка</div>
