@@ -10,7 +10,7 @@ import {
     normalizeTelegramAppError,
     openTelegramExternalLink,
 } from '../../lib/telegramMiniApp';
-import { BASE_API_URL, telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
+import { AUTH_API_URL, telegramMiniAppApi, telegramMiniAppApiEndpoint, telegramMiniAppEndpoint, telegramMiniAppEndpoints, telegramMiniAppRoutes } from '../../lib/telegramMiniAppApi';
 import { buildVlessLinkApiUrl, normalizeVlessLinkResponse } from '../../lib/vlessLink';
 
 const state = ref('loading');
@@ -65,10 +65,10 @@ const qrCopyLink = computed(() => {
 
 const preferredLinks = computed(() => ([
     {
-        key: 'incy_deeplink',
+        key: 'incy_deep_link',
         title: 'Incy',
         description: 'Подключить подписку в Incy или открыть QR-код.',
-        url: links.value?.incy_deeplink ?? '',
+        url: links.value?.incy_deep_link ?? '',
         target: 'incy',
     },
     {
@@ -79,10 +79,10 @@ const preferredLinks = computed(() => ([
         target: 'happ',
     },
     {
-        key: 'v2raytun_deeplink',
+        key: 'v2raytun_deep_link',
         title: 'V2RayTun',
         description: 'Подключить подписку в V2RayTun или открыть QR-код.',
-        url: links.value?.v2raytun_deeplink ?? '',
+        url: links.value?.v2raytun_deep_link ?? '',
         target: 'v2raytun',
     },
 ]).filter((item) => item.url));
@@ -134,7 +134,7 @@ const loadData = async () => {
     });
 
     const response = await telegramMiniAppApi.get(
-        buildVlessLinkApiUrl(BASE_API_URL, telegramMiniAppEndpoints.vlessLink),
+        buildVlessLinkApiUrl(AUTH_API_URL, telegramMiniAppEndpoints.vlessLink),
     );
 
     links.value = normalizeVlessLinkResponse(response.data);
