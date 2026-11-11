@@ -28,9 +28,33 @@ const processingTelegram = ref(false);
 const processingOidc = ref(false);
 const error = ref('');
 const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
+const isDesktopLogin = new URLSearchParams(window.location.search).get('desktop') === '1';
 const communityLinks = telegramCommunityLinks(isTelegramMiniApp);
 
-const API_URL = String(import.meta.env.API_URL || '').replace(/\/+$/, '');
+const encodeBase64Url = (value) => {
+    const bytes = new TextEncoder().encode(value);
+    let binary = '';
+
+    bytes.forEach((byte) => {
+        binary += String.fromCharCode(byte);
+    });
+
+    return window.btoa(binary)
+        .replace(/\+/g, '-')
+        .replace(/\//g, '_')
+        .replace(/=+$/g, '');
+};
+
+const handleDesktopOidcTicket = (ticket) => {
+    const encodedTicket = encodeBase64Url(ticket);
+    const deepLink = new URL(`oksanavpn://auth/${encodedTicket}`);
+
+    if (deepLink.protocol !== 'oksanavpn:' || deepLink.hostname !== 'auth' || deepLink.pathname.length <= 1) {
+        throw new Error('Не удалось открыть приложение Oksana VPN. Скопируйте ссылку и попробуйте ещё раз.');
+    }
+
+    window.location.assign(deepLink.href);
+};
 
 const exchangeTelegramOidcTicket = async () => {
     const fragment = window.location.hash.replace(/^#/, '');
@@ -38,6 +62,10 @@ const exchangeTelegramOidcTicket = async () => {
     const ticket = fragmentParams.get('telegram_oidc_ticket')?.trim() ?? '';
 
     if (ticket === '') {
+        if (isDesktopLogin) {
+            error.value = 'Билет Telegram пока не получен. Нажмите «Войти через Telegram», чтобы начать или повторить вход.';
+        }
+
         return;
     }
 
@@ -48,6 +76,18 @@ const exchangeTelegramOidcTicket = async () => {
 
     processingOidc.value = true;
     error.value = '';
+
+    if (isDesktopLogin) {
+        try {
+            handleDesktopOidcTicket(ticket);
+        } catch (requestError) {
+            error.value = requestError?.message ?? 'Не удалось открыть приложение Oksana VPN.';
+        } finally {
+            processingOidc.value = false;
+        }
+
+        return;
+    }
 
     try {
         const response = await telegramMiniAppApi.post(
@@ -73,12 +113,24 @@ const exchangeTelegramOidcTicket = async () => {
 };
 
 const submitTelegramOidc = () => {
-    if (API_URL === '') {
-        error.value = 'Вход через Telegram временно недоступен.';
-        return;
-    }
+    try {
+        const endpoint = new URL(telegramMiniAppApiEndpoint('auth/telegram/oidc/start'), window.location.href);
 
-    window.location.assign(`${API_URL}/auth/telegram/oidc/start`);
+        if (isDesktopLogin) {
+            const returnUrl = new URL(window.location.pathname, window.location.origin);
+
+            if (returnUrl.protocol !== 'https:') {
+                throw new Error('Вход из приложения Oksana VPN доступен только через защищённый HTTPS адрес.');
+            }
+
+            returnUrl.search = '?desktop=1';
+            endpoint.searchParams.set('return_url', returnUrl.href);
+        }
+
+        window.location.assign(endpoint.href);
+    } catch (requestError) {
+        error.value = requestError?.message ?? 'Не удалось начать вход через Telegram.';
+    }
 };
 
 const submit = async () => {
