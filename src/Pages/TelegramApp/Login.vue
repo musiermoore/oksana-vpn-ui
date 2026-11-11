@@ -29,6 +29,7 @@ const processingOidc = ref(false);
 const error = ref('');
 const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
 const isDesktopLogin = new URLSearchParams(window.location.search).get('desktop') === '1';
+const desktopOidcPendingKey = 'telegram-desktop-oidc-pending';
 const communityLinks = telegramCommunityLinks(isTelegramMiniApp);
 
 const encodeBase64Url = (value) => {
@@ -63,10 +64,19 @@ const exchangeTelegramOidcTicket = async () => {
 
     if (ticket === '') {
         if (isDesktopLogin) {
-            error.value = 'Билет Telegram пока не получен. Нажмите «Войти через Telegram», чтобы начать или повторить вход.';
+            if (window.sessionStorage.getItem(desktopOidcPendingKey) === '1') {
+                window.sessionStorage.removeItem(desktopOidcPendingKey);
+                error.value = 'Telegram не вернул билет для входа в Oksana VPN. Вернитесь на страницу входа и попробуйте ещё раз.';
+            } else {
+                submitTelegramOidc();
+            }
         }
 
         return;
+    }
+
+    if (isDesktopLogin) {
+        window.sessionStorage.removeItem(desktopOidcPendingKey);
     }
 
     fragmentParams.delete('telegram_oidc_ticket');
@@ -125,10 +135,15 @@ const submitTelegramOidc = () => {
 
             returnUrl.search = '?desktop=1';
             endpoint.searchParams.set('return_url', returnUrl.href);
+            window.sessionStorage.setItem(desktopOidcPendingKey, '1');
         }
 
         window.location.assign(endpoint.href);
     } catch (requestError) {
+        if (isDesktopLogin) {
+            window.sessionStorage.removeItem(desktopOidcPendingKey);
+        }
+
         error.value = requestError?.message ?? 'Не удалось начать вход через Telegram.';
     }
 };
