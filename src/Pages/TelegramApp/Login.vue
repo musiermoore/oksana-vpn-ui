@@ -66,7 +66,7 @@ const exchangeTelegramOidcTicket = async () => {
         if (isDesktopLogin) {
             if (window.sessionStorage.getItem(desktopOidcPendingKey) === '1') {
                 window.sessionStorage.removeItem(desktopOidcPendingKey);
-                error.value = 'Telegram не вернул билет для входа в Oksana VPN. Вернитесь на страницу входа и попробуйте ещё раз.';
+                error.value = 'Не удалось войти через Telegram. Вернитесь в приложение Oksana VPN и попробуйте ещё раз.';
             } else {
                 submitTelegramOidc();
             }
