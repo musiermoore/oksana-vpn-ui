@@ -4,7 +4,7 @@ Standalone Vue 3 single page app copied from the Laravel mini app. The Laravel p
 
 ## Local development
 
-1. Copy `.env.example` to `.env`; set `VITE_API_BASE_URL` to the Go API origin plus `/api/v1`, for example `https://api.oksana1984.ru/api/v1`.
+1. Copy `.env.example` to `.env`; set `VITE_API_BASE_URL` to the Mini App API and `API_URL` to the auth API, for example `https://api.oksana1984.ru/api/v1` for both.
 2. Run `npm ci` and `npm run dev`.
 3. Run `npm test` and `npm run build` before deployment.
 
@@ -16,7 +16,7 @@ Serve the UI on `https://public.oksana1984.ru` with an HTML fallback to `index.h
 
 Keep the Laravel pages available while testing the new container. Verify Telegram authentication, public login, payments and return URL, support attachments, QR/download actions, and deep links. On the current server, Caddy routes `public.oksana1984.ru` to `oksana-vpn-ui:80`, while `/build/*` still reaches Laravel for older open tabs. The deployed proxy config is versioned in `deploy/Caddyfile`; running the proxy's interactive `scripts/setup-proxy.sh` replaces its Caddyfile, so deploy the versioned config again after using that generator. The previous Caddy configuration is saved at `/var/apps/oksana-vpn-proxy/Caddyfile.pre-spa-20261019`. If a flow fails, copy that file to `/var/apps/oksana-vpn-proxy/Caddyfile` and run `docker exec oksana-vpn-caddy caddy reload --config /etc/caddy/Caddyfile`. The Telegram bot menu now opens `https://public.oksana1984.ru/`; its prior setting is saved at `/var/apps/wireguard-vpn-app/storage/telegram-menu.pre-spa-20261019.json` and can be restored with Telegram's `setChatMenuButton` API. The Laravel pages remain available. Telegram's separate Main Mini App URL is configured in BotFather and should also be checked there.
 
-All Mini App REST calls, including Telegram auth, profile, registration, payments, configs, giveaways, referrals, and support, use `VITE_API_BASE_URL` on the Go API. The Go API implements these operations directly against the shared database and the relevant Telegram, YooKassa, WireGuard, XUI, and support-storage integrations; it does not forward Mini App requests to Laravel. Existing Laravel routes remain available for compatibility and rollback. The Go API and Laravel share bearer tokens without cookies. Keep the Vue page URLs at the site root, and keep VPN subscription/import links on their existing `/connect` and deep-link contracts. The frontend must be served over HTTPS for Telegram.
+Telegram authentication, profile requests, and public password login use `API_URL`. Registration and other Mini App requests use `VITE_API_BASE_URL`. The Go API implements these operations directly against the shared database and the relevant Telegram, YooKassa, WireGuard, XUI, and support-storage integrations; it does not forward Mini App requests to Laravel. Existing Laravel routes remain available for compatibility and rollback. The Go API and Laravel share bearer tokens without cookies. Keep the Vue page URLs at the site root, and keep VPN subscription/import links on their existing `/connect` and deep-link contracts. The frontend must be served over HTTPS for Telegram.
 
 ## Git push deployment
 

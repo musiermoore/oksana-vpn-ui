@@ -14,7 +14,7 @@ const INIT_DATA_RETRY_ATTEMPTS = 8;
 const INIT_DATA_RETRY_DELAY_MS = 250;
 const BOOTSTRAP_DIAGNOSTIC_TTL_MS = 120000;
 const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/+$/, '');
-const AUTH_API_URL = BASE_API_URL;
+const AUTH_API_URL = String(import.meta.env.API_URL || BASE_API_URL).replace(/\/+$/, '');
 const BOOTSTRAP_DIAGNOSTIC_URL = `${BASE_API_URL}/diagnostics/bootstrap`;
 const PUBLIC_PROFILE_URL = `${AUTH_API_URL}/auth/me`;
 
