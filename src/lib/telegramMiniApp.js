@@ -1,4 +1,4 @@
-import { authenticateTelegramWithProvisioning } from './authFlow';
+import { authenticateTelegram } from './authFlow';
 
 import { navigate } from './navigation';
 
@@ -13,11 +13,10 @@ const BOOTSTRAP_DIAGNOSTIC_KEY = 'telegram-mini-app-last-bootstrap-diagnostic';
 const INIT_DATA_RETRY_ATTEMPTS = 8;
 const INIT_DATA_RETRY_DELAY_MS = 250;
 const BOOTSTRAP_DIAGNOSTIC_TTL_MS = 120000;
-const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/telegram-app').replace(/\/+$/, '');
-const AUTH_API_URL = String(import.meta.env.API_URL || BASE_API_URL).replace(/\/+$/, '');
+const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/+$/, '');
+const AUTH_API_URL = BASE_API_URL;
 const BOOTSTRAP_DIAGNOSTIC_URL = `${BASE_API_URL}/diagnostics/bootstrap`;
 const PUBLIC_PROFILE_URL = `${AUTH_API_URL}/auth/me`;
-const PUBLIC_TELEGRAM_AUTH_URL = `${BASE_API_URL}/auth/telegram`;
 
 export const telegramAppLabels = {
     open: 'Открыт',
@@ -389,10 +388,9 @@ const resolveTelegramUserIdFromAuthData = (data) => {
 
 export const loginTelegramApp = async (authUrl, { attempts = INIT_DATA_RETRY_ATTEMPTS, delayMs = INIT_DATA_RETRY_DELAY_MS } = {}) => {
     const initData = await resolveTelegramInitData(attempts, delayMs);
-    const response = await authenticateTelegramWithProvisioning(
+    const response = await authenticateTelegram(
         (url, payload) => window.axios.post(url, payload),
         authUrl,
-        PUBLIC_TELEGRAM_AUTH_URL,
         initData,
     );
 

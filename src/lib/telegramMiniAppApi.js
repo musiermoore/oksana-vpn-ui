@@ -4,8 +4,8 @@ import { getClientTimeZone } from './timezone';
 import { apiBaseUrlForPath } from './apiUrls';
 import { VLESS_LINK_API_PATH } from './vlessLink';
 
-export const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/telegram-app').replace(/\/+$/, '');
-export const AUTH_API_URL = String(import.meta.env.API_URL || BASE_API_URL).replace(/\/+$/, '');
+export const BASE_API_URL = String(import.meta.env.VITE_API_BASE_URL || '/api/v1').replace(/\/+$/, '');
+export const AUTH_API_URL = BASE_API_URL;
 
 export const telegramMiniAppEndpoint = (path = '') => `${BASE_API_URL}/${String(path).replace(/^\/+/, '')}`;
 export const telegramMiniAppApiEndpoint = (path = '') => {
