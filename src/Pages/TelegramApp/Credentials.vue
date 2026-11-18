@@ -123,7 +123,7 @@ onMounted(async () => {
                 <p>Сохраните логин и пароль, чтобы войти на сайт и управлять подпиской, если вы не сможете открыть Telegram.</p>
             </div>
 
-            <a class="tg-button tg-button--secondary" href="https://public.oksana1984.ru/login" target="_blank" rel="noopener noreferrer">
+            <a class="tg-button tg-button--secondary" href="https://oksana1984.ru/login" target="_blank" rel="noopener noreferrer">
                 <AppIcon name="arrowUpRight" />
                 <span>Открыть вход на сайте</span>
             </a>

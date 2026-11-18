@@ -4,8 +4,8 @@ import assert from 'node:assert/strict';
 const calls = [];
 globalThis.window = {
     location: {
-        href: 'https://public.oksana1984.ru/',
-        origin: 'https://public.oksana1984.ru',
+        href: 'https://oksana1984.ru/',
+        origin: 'https://oksana1984.ru',
         pathname: '/',
         search: '',
         assign: (url) => calls.push(['external', url]),
@@ -31,13 +31,13 @@ const { currentRoute, navigate } = await import('../src/lib/navigation.js');
 test('internal navigation updates SPA route and preserves query', () => {
     navigate('/wireguard?step=list');
     assert.deepEqual(currentRoute.value, { pathname: '/wireguard', search: '?step=list' });
-    assert.deepEqual(calls.at(-1), ['push', 'https://public.oksana1984.ru/wireguard?step=list']);
+    assert.deepEqual(calls.at(-1), ['push', 'https://oksana1984.ru/wireguard?step=list']);
 });
 
 test('deep link replacement does not add browser history', () => {
     navigate('/support/42', { replace: true });
     assert.deepEqual(currentRoute.value, { pathname: '/support/42', search: '' });
-    assert.deepEqual(calls.at(-1), ['replace', 'https://public.oksana1984.ru/support/42']);
+    assert.deepEqual(calls.at(-1), ['replace', 'https://oksana1984.ru/support/42']);
 });
 
 test('external navigation leaves the SPA', () => {

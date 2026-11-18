@@ -20,7 +20,7 @@ const botLink = {
 const websiteLink = {
     title: 'Сайт',
     description: 'Откройте сайт OksanaVPN.',
-    url: 'https://public.oksana1984.ru/',
+    url: 'https://oksana1984.ru/',
 };
 
 export const telegramCommunityLinks = (isTelegramMiniApp) => [
