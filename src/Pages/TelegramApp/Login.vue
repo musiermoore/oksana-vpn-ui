@@ -26,6 +26,8 @@ const form = ref({
 const processing = ref(false);
 const processingTelegram = ref(false);
 const processingOidc = ref(false);
+const desktopAuthComplete = ref(false);
+const desktopReturnLink = ref('');
 const error = ref('');
 const isTelegramMiniApp = Boolean(window.Telegram?.WebApp?.initData);
 const isDesktopLogin = new URLSearchParams(window.location.search).get('desktop') === '1';
@@ -51,10 +53,18 @@ const handleDesktopOidcTicket = (ticket) => {
     const deepLink = new URL(`oksanavpn://auth/${encodedTicket}`);
 
     if (deepLink.protocol !== 'oksanavpn:' || deepLink.hostname !== 'auth' || deepLink.pathname.length <= 1) {
-        throw new Error('Не удалось открыть приложение Oksana VPN. Скопируйте ссылку и попробуйте ещё раз.');
+        throw new Error('Не удалось подготовить запуск Oksana VPN. Повторите вход.');
     }
 
+    desktopReturnLink.value = deepLink.href;
+    desktopAuthComplete.value = true;
     window.location.assign(deepLink.href);
+};
+
+const reopenDesktopApp = () => {
+    if (desktopReturnLink.value) {
+        window.location.assign(desktopReturnLink.value);
+    }
 };
 
 const exchangeTelegramOidcTicket = async () => {
@@ -123,6 +133,9 @@ const exchangeTelegramOidcTicket = async () => {
 };
 
 const submitTelegramOidc = () => {
+    processingOidc.value = true;
+    error.value = '';
+
     try {
         const endpoint = new URL(telegramMiniAppApiEndpoint('auth/telegram/oidc/start'), window.location.href);
 
@@ -144,6 +157,7 @@ const submitTelegramOidc = () => {
             window.sessionStorage.removeItem(desktopOidcPendingKey);
         }
 
+        processingOidc.value = false;
         error.value = requestError?.message ?? 'Не удалось начать вход через Telegram.';
     }
 };
@@ -199,7 +213,43 @@ onMounted(exchangeTelegramOidcTicket);
         description="Вход в личный кабинет."
         :show-navigation="false"
     >
-        <section class="tg-section">
+        <section
+            v-if="isDesktopLogin"
+            class="tg-surface-card tg-stack desktop-auth-card"
+            :class="{ 'tg-state-card--danger': Boolean(error) }"
+            role="status"
+            aria-live="polite"
+        >
+            <div class="tg-state-card__icon">
+                <AppIcon :name="error ? 'circleExclamation' : 'send'" />
+            </div>
+            <h2>
+                {{ error
+                    ? 'Не удалось выполнить вход'
+                    : desktopAuthComplete
+                        ? 'Вход подтверждён'
+                        : 'Выполняется вход через Telegram' }}
+            </h2>
+
+            <template v-if="error">
+                <p>{{ error }}</p>
+                <button class="tg-button" type="button" @click="submitTelegramOidc">Повторить вход</button>
+            </template>
+            <template v-else-if="desktopAuthComplete">
+                <p>Если Oksana VPN не открылось автоматически, нажмите кнопку ниже.</p>
+                <button class="tg-button" type="button" @click="reopenDesktopApp">Открыть Oksana VPN</button>
+            </template>
+            <template v-else>
+                <div class="desktop-auth-spinner" aria-hidden="true"></div>
+                <p>
+                    {{ processingOidc
+                        ? 'Подтвердите вход в Telegram. После подтверждения вернём вас в приложение Oksana VPN.'
+                        : 'Подготавливаем защищённый переход в Telegram.' }}
+                </p>
+            </template>
+        </section>
+
+        <section v-else class="tg-section">
             <div class="tg-page-header__copy">
                 <h2>Вход</h2>
                 <p>Используйте Telegram или логин и пароль от аккаунта.</p>
@@ -270,3 +320,36 @@ onMounted(exchangeTelegramOidcTicket);
         </section>
     </TelegramMiniAppFrame>
 </template>
+
+<style scoped>
+.desktop-auth-card {
+    justify-items: center;
+    padding: 24px;
+    text-align: center;
+}
+
+.desktop-auth-card h2,
+.desktop-auth-card p {
+    margin: 0;
+}
+
+.desktop-auth-card p {
+    color: var(--tg-text-secondary);
+    line-height: 1.5;
+}
+
+.desktop-auth-spinner {
+    width: 28px;
+    height: 28px;
+    border: 3px solid var(--tg-border);
+    border-top-color: var(--tg-primary);
+    border-radius: 50%;
+    animation: desktop-auth-spin 0.8s linear infinite;
+}
+
+@keyframes desktop-auth-spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+</style>
