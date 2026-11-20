@@ -162,7 +162,10 @@ test('promo preview uses the authenticated client and server totals for every pa
     assert.match(html, /Стоимость подписки 173,25 ₽/);
     assert.match(html, /К оплате сейчас 53,25 ₽/);
     assert.match(html, /Скидка 20% — 37,25 ₽/);
-    assert.match(html, /Убрать промокод/);
+    assert.match(html, /aria-label="Очистить промокод"/);
+    assert.doesNotMatch(html, /Убрать промокод|checkout-promo-hint/);
+    assert.match(html, /class="tg-section__subtitle"[^>]*>Сумма к оплате уже учитывает доступный баланс и скидки\./);
+    assert.ok(html.indexOf('id="checkout-promo-code"') < html.indexOf('tg-list-card--button'));
 });
 
 test('editing a code and restoring its previous value requires a new preview', async () => {
@@ -227,6 +230,7 @@ test('field validation errors appear inline and clearing the code allows regular
     view.promoCode.value = '';
     assert.equal(view.promoError.value, '');
     assert.equal(view.mustApplyPromo.value, false);
+    assert.doesNotMatch(await renderPayments(), /aria-label="Очистить промокод"/);
     respond = () => ({ status: 'activated' });
     await view.buySubscription();
     assert.equal('promo_code' in requests.at(-1).payload, false);

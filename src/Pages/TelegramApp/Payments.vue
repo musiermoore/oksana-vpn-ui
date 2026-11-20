@@ -540,8 +540,51 @@ onMounted(async () => {
                         <span>Назад</span>
                     </button>
                     <h2>{{ purchaseMode === 'GIFT' ? 'Выберите срок подарочного кода' : 'Выберите срок подписки' }}</h2>
-                    <p>{{ purchaseMode === 'GIFT' ? 'После оплаты получите код, который можно передать другому человеку.' : (shouldPromoteTrial ? 'Можно сразу активировать пробный период на 2 дня или выбрать платный тариф.' : 'Сумма к оплате уже учитывает доступный баланс и скидки.') }}</p>
+                    <p class="tg-section__subtitle">{{ purchaseMode === 'GIFT' ? 'После оплаты получите код, который можно передать другому человеку.' : (shouldPromoteTrial ? 'Можно сразу активировать пробный период на 2 дня или выбрать платный тариф.' : 'Сумма к оплате уже учитывает доступный баланс и скидки.') }}</p>
                 </div>
+
+                <form v-if="isPromoAvailable" class="tg-section" @submit.prevent="applyPromo">
+                    <div class="tg-field">
+                        <label for="checkout-promo-code">Промокод</label>
+                        <div class="tg-promo-input">
+                            <input
+                                id="checkout-promo-code"
+                                v-model="promoCode"
+                                class="tg-input tg-promo-input__field"
+                                type="text"
+                                placeholder="Необязательно"
+                                maxlength="64"
+                                autocomplete="off"
+                                autocapitalize="characters"
+                                spellcheck="false"
+                                :disabled="previewingPromo || payingMonth !== null"
+                                :aria-invalid="Boolean(promoError)"
+                                :aria-describedby="promoError ? 'checkout-promo-error' : undefined"
+                            />
+                            <button
+                                v-if="promoCode"
+                                class="tg-promo-input__clear"
+                                type="button"
+                                aria-label="Очистить промокод"
+                                :disabled="previewingPromo || payingMonth !== null"
+                                @click="promoCode = ''"
+                            >
+                                <AppIcon name="close" aria-hidden="true" />
+                            </button>
+                        </div>
+                    </div>
+                    <div class="tg-actions">
+                        <button class="tg-button tg-button--secondary" type="submit" :disabled="!mustApplyPromo || previewingPromo || payingMonth !== null">
+                            {{ previewingPromo ? 'Проверяем…' : 'Применить' }}
+                        </button>
+                    </div>
+                    <p v-if="promoError" id="checkout-promo-error" class="tg-error" role="alert">{{ promoError }}</p>
+                    <div v-if="appliedPromo" class="tg-surface-card tg-stack" role="status">
+                        <p>{{ promoBenefitText(appliedPromo) }}</p>
+                        <p>Стоимость подписки {{ formatPrice(appliedPromo.price) }}</p>
+                        <p>К оплате сейчас {{ formatPrice(appliedPromo.payable_now) }}</p>
+                    </div>
+                </form>
 
                 <div v-if="availablePackages.length === 0" class="tg-state-card">
                     <div class="tg-state-card__icon">
@@ -578,41 +621,6 @@ onMounted(async () => {
                         <span class="tg-tag tg-tag--primary">{{ item.is_trial ? '0 ₽' : marketingPrice(item) }}</span>
                     </div>
                 </button>
-
-                <form v-if="isPromoAvailable" class="tg-section" @submit.prevent="applyPromo">
-                    <div class="tg-field">
-                        <label for="checkout-promo-code">Промокод</label>
-                        <input
-                            id="checkout-promo-code"
-                            v-model="promoCode"
-                            class="tg-input"
-                            type="text"
-                            placeholder="Необязательно"
-                            maxlength="64"
-                            autocomplete="off"
-                            autocapitalize="characters"
-                            spellcheck="false"
-                            :disabled="previewingPromo || payingMonth !== null"
-                            :aria-invalid="Boolean(promoError)"
-                            :aria-describedby="promoError ? 'checkout-promo-error' : (mustApplyPromo ? 'checkout-promo-hint' : undefined)"
-                        />
-                    </div>
-                    <div class="tg-actions">
-                        <button class="tg-button tg-button--secondary" type="submit" :disabled="!mustApplyPromo || previewingPromo || payingMonth !== null">
-                            {{ previewingPromo ? 'Проверяем…' : 'Применить' }}
-                        </button>
-                        <button v-if="promoCode" class="tg-link-button" type="button" :disabled="previewingPromo || payingMonth !== null" @click="promoCode = ''">
-                            Убрать промокод
-                        </button>
-                    </div>
-                    <p v-if="promoError" id="checkout-promo-error" class="tg-error" role="alert">{{ promoError }}</p>
-                    <p v-else-if="mustApplyPromo" id="checkout-promo-hint" class="tg-caption">Примените промокод или уберите его, чтобы продолжить.</p>
-                    <div v-if="appliedPromo" class="tg-surface-card tg-stack" role="status">
-                        <p>{{ promoBenefitText(appliedPromo) }}</p>
-                        <p>Стоимость подписки {{ formatPrice(appliedPromo.price) }}</p>
-                        <p>К оплате сейчас {{ formatPrice(appliedPromo.payable_now) }}</p>
-                    </div>
-                </form>
 
                 <div class="tg-actions">
                     <button
@@ -712,3 +720,45 @@ onMounted(async () => {
         </template>
     </TelegramMiniAppFrame>
 </template>
+
+<style scoped>
+.tg-promo-input {
+    position: relative;
+}
+
+.tg-promo-input__field {
+    padding-right: 52px;
+}
+
+.tg-promo-input__clear {
+    position: absolute;
+    top: 50%;
+    right: 5px;
+    display: grid;
+    place-items: center;
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--tg-text-secondary);
+    cursor: pointer;
+    transform: translateY(-50%);
+}
+
+.tg-promo-input__clear:hover:not(:disabled) {
+    background: var(--tg-primary-soft);
+    color: var(--tg-primary);
+}
+
+.tg-promo-input__clear:focus-visible {
+    outline: 2px solid var(--tg-primary);
+    outline-offset: -2px;
+}
+
+.tg-promo-input__clear:disabled {
+    opacity: 0.65;
+    cursor: default;
+}
+</style>
