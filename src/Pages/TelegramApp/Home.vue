@@ -184,7 +184,7 @@ const shareReferralLink = () => {
         return;
     }
 
-    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Подключайся к OksanaVPN по моей ссылке. По ней можно получить бонус при первом подключении.')}`;
+    const shareUrl = `https://t.me/share/url?url=${encodeURIComponent(link)}&text=${encodeURIComponent('Подключайся к Oksana VPN по моей ссылке. По ней можно получить бонус при первом подключении.')}`;
 
     if (window.Telegram?.WebApp?.openTelegramLink) {
         window.Telegram.WebApp.openTelegramLink(shareUrl);
@@ -215,8 +215,7 @@ onMounted(async () => {
 
 <template>
     <TelegramMiniAppFrame
-        title="OksanaVPN"
-        description="Быстрый доступ к конфигам, подписке и поддержке."
+        title="Oksana VPN"
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>
@@ -266,7 +265,6 @@ onMounted(async () => {
                 <div class="tg-section__head">
                     <div>
                         <div class="tg-section__title">Сообщество</div>
-                        <div class="tg-section__subtitle">Новости и общий чат теперь всегда под рукой прямо на главной.</div>
                     </div>
                 </div>
 
@@ -315,7 +313,6 @@ onMounted(async () => {
                 <div class="tg-section__head">
                     <div>
                         <div class="tg-section__title">Реферальная программа</div>
-                        <div class="tg-section__subtitle">Скопируйте ссылку или откройте правила программы.</div>
                     </div>
                 </div>
 

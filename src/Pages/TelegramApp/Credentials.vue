@@ -103,7 +103,6 @@ onMounted(async () => {
 <template>
     <TelegramMiniAppFrame
         title="Данные для входа"
-        description="Настройте вход по логину и паролю."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>

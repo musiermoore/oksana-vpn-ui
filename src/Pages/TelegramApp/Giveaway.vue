@@ -97,7 +97,6 @@ onMounted(async () => {
 <template>
     <TelegramMiniAppFrame
         title="Розыгрыш"
-        description="Явное участие, реферальный вес и призы на подписку."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>

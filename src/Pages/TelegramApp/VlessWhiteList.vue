@@ -115,7 +115,6 @@ onBeforeUnmount(() => {
 <template>
     <TelegramMiniAppFrame
         title="Белые списки"
-        description="Отдельные ссылки для клиентов, которым нужен белый список."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>

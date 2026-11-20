@@ -19,7 +19,7 @@ const botLink = {
 
 const websiteLink = {
     title: 'Сайт',
-    description: 'Откройте сайт OksanaVPN.',
+    description: 'Откройте сайт Oksana VPN.',
     url: 'https://oksana1984.ru/',
 };
 

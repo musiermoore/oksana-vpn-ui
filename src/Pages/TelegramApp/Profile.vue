@@ -57,7 +57,7 @@ onMounted(async () => {
 </script>
 
 <template>
-    <TelegramMiniAppFrame title="Профиль" description="Информация о вашем аккаунте.">
+    <TelegramMiniAppFrame title="Профиль">
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>
             <div class="tg-skeleton tg-skeleton--row"></div>
@@ -73,14 +73,14 @@ onMounted(async () => {
         <section v-else class="tg-section">
             <div class="tg-surface-card tg-stack">
                 <div class="tg-page-header__copy">
-                    <h2>Добро пожаловать<span v-if="welcomeName">, {{ welcomeName }}</span>!</h2>
+                    <h2 class="tg-section__title">Добро пожаловать<span v-if="welcomeName">, {{ welcomeName }}</span>!</h2>
                     <p v-if="telegramUsername && telegramId">Telegram ID: {{ telegramId }}</p>
                     <p v-else-if="!welcomeName">Не удалось определить Telegram username или ID.</p>
                 </div>
 
                 <Link :href="telegramMiniAppRoutes.credentials" class="tg-button">
                     <AppIcon name="key" />
-                    <span>Данные для входа</span>
+                    <span>Данные для входа на сайте</span>
                 </Link>
 
                 <button v-if="!isTelegramMiniApp" class="tg-button tg-button--secondary" type="button" @click="logout">

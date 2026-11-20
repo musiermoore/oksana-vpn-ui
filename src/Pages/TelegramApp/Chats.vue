@@ -37,7 +37,6 @@ onMounted(async () => {
 <template>
     <TelegramMiniAppFrame
         title="Сообщество"
-        description="Канал с обновлениями и чат, где можно задать быстрый вопрос."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>

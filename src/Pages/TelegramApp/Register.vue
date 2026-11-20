@@ -56,8 +56,7 @@ const submit = async () => {
     <Head title="Регистрация" />
 
     <TelegramMiniAppFrame
-        title="OksanaVPN"
-        description="Создание публичного аккаунта."
+        title="Oksana VPN"
         :show-navigation="false"
     >
         <section class="tg-section">

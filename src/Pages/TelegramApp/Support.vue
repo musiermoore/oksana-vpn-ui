@@ -167,7 +167,6 @@ onBeforeUnmount(() => {
 <template>
     <TelegramMiniAppFrame
         title="Поддержка"
-        description="Напишите вопрос, посмотрите историю обращений или откройте нужный чат."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>

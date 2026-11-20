@@ -31,10 +31,6 @@ const initialStep = () => {
 };
 
 const frameTitle = computed(() => step.value === 'hub' ? 'Конфиги' : 'Amnezia');
-const frameDescription = computed(() => step.value === 'hub'
-    ? 'Выберите тип конфигов и получите данные для подключения.'
-    : 'Выберите конфиг, QR-код или отправку файла в Telegram.'
-);
 
 const revokeQrUrl = () => {
     if (qrImageUrl.value) {
@@ -165,7 +161,6 @@ onBeforeUnmount(() => {
 <template>
     <TelegramMiniAppFrame
         :title="frameTitle"
-        :description="frameDescription"
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>
@@ -211,7 +206,6 @@ onBeforeUnmount(() => {
                         <span>Конфиги</span>
                     </div>
                     <h2>Выберите тип конфигов</h2>
-                        <p>Откройте стандартные конфиги или Amnezia.</p>
                 </div>
 
                 <Link :href="telegramMiniAppRoutes.vless" class="tg-list-card">

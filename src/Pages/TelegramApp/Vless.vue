@@ -67,21 +67,18 @@ const preferredLinks = computed(() => ([
     {
         key: 'incy_deep_link',
         title: 'Incy',
-        description: 'Подключить подписку в Incy или открыть QR-код.',
         url: links.value?.incy_deep_link ?? '',
         target: 'incy',
     },
     {
         key: 'happ_deep_link',
         title: 'Happ',
-        description: 'Подключить подписку в Happ или открыть QR-код.',
         url: links.value?.happ_deep_link ?? '',
         target: 'happ',
     },
     {
         key: 'v2raytun_deep_link',
         title: 'V2RayTun',
-        description: 'Подключить подписку в V2RayTun или открыть QR-код.',
         url: links.value?.v2raytun_deep_link ?? '',
         target: 'v2raytun',
     },
@@ -203,7 +200,6 @@ onBeforeUnmount(() => {
 <template>
     <TelegramMiniAppFrame
         title="Xray / VLESS"
-        description="Подключите VPN в Incy, Happ, V2RayTun или другом приложении."
     >
         <div v-if="copyToast" class="tg-toast" role="status">{{ copyToast }}</div>
         <section v-if="state === 'loading'" class="tg-section">
@@ -250,7 +246,6 @@ onBeforeUnmount(() => {
                     </div>
                     <div class="tg-list-card__body">
                         <div class="tg-list-card__title">{{ item.title }}</div>
-                        <div class="tg-list-card__description">{{ item.description }}</div>
                         <div class="tg-inline-actions tg-inline-actions--icons">
                             <button class="tg-icon-button tg-icon-button--soft" type="button" :aria-label="`Открыть ${item.title}`" :title="`Открыть ${item.title}`" @click="openTelegramExternalLink(item.url)">
                                 <AppIcon name="bolt" />

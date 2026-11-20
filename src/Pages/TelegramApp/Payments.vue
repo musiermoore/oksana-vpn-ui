@@ -406,7 +406,6 @@ onMounted(async () => {
 <template>
     <TelegramMiniAppFrame
         title="Подписка"
-        description="Проверяйте статус, продлевайте доступ и активируйте подарочные коды."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>
@@ -483,8 +482,7 @@ onMounted(async () => {
                 <p v-if="packageLoadError" class="tg-error">{{ packageLoadError }}</p>
 
                 <div class="tg-surface-card tg-stack">
-                    <div class="tg-section__title">Активировать код</div>
-                    <div class="tg-section__subtitle">Если вам прислали подарочный код, введите его здесь.</div>
+                    <div class="tg-section__title">Активировать подарочный код</div>
 
                     <div class="tg-field">
                         <label for="activation-code">Код</label>

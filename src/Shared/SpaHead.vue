@@ -3,7 +3,7 @@ import { watchEffect } from 'vue';
 
 const props = defineProps({ title: String });
 watchEffect(() => {
-    document.title = props.title ? `${props.title} · OksanaVPN` : 'OksanaVPN';
+    document.title = props.title ? `${props.title} · Oksana VPN` : 'Oksana VPN';
 });
 </script>
 

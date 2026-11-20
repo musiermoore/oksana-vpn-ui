@@ -72,7 +72,6 @@ onMounted(async () => {
 <template>
     <TelegramMiniAppFrame
         title="Помощь"
-        description="Инструкции и приложения, которые помогут подключиться без лишних шагов."
     >
         <section v-if="state === 'loading'" class="tg-section">
             <div class="tg-skeleton tg-skeleton--hero"></div>
@@ -91,15 +90,6 @@ onMounted(async () => {
 
         <template v-else>
             <section v-if="section === 'menu'" class="tg-section">
-                <div class="tg-page-header__copy">
-                    <div class="tg-tag tg-tag--primary">
-                        <AppIcon name="circleQuestion" />
-                        <span>Помощь</span>
-                    </div>
-                    <h2>Что вам нужно?</h2>
-                    <p>Выберите короткий путь: инструкция, подходящее приложение или обращение в поддержку.</p>
-                </div>
-
                 <button class="tg-list-card tg-list-card--button" type="button" @click="openSection('wg')">
                     <div class="tg-list-card__icon tg-list-card__icon--success">
                         <AppIcon name="shield" />

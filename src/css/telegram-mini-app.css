@@ -128,7 +128,7 @@
 
 .tg-brand {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
     gap: 12px;
     min-width: 0;
 }
@@ -170,7 +170,6 @@
     font-weight: 700;
 }
 
-.tg-brand__copy p,
 .tg-page-header__copy p,
 .tg-page-note,
 .tg-caption,

@@ -10,7 +10,6 @@ const THEME_STORAGE_KEY = 'telegram-mini-app-theme';
 
 const props = defineProps({
     title: String,
-    description: String,
     showNavigation: {
         type: Boolean,
         default: true,
@@ -82,7 +81,6 @@ watch(theme, (value) => {
 
                     <div class="tg-brand__copy">
                         <h1>{{ title }}</h1>
-                        <p>{{ description }}</p>
                     </div>
                 </div>
 

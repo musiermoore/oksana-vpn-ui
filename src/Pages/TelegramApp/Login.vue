@@ -209,8 +209,7 @@ onMounted(exchangeTelegramOidcTicket);
     <Head title="Вход" />
 
     <TelegramMiniAppFrame
-        title="OksanaVPN"
-        description="Вход в личный кабинет."
+        title="Oksana VPN"
         :show-navigation="false"
     >
         <section
@@ -300,7 +299,7 @@ onMounted(exchangeTelegramOidcTicket);
                 <div class="tg-section__head">
                     <div>
                         <div class="tg-section__title">Сообщество</div>
-                        <div class="tg-section__subtitle">Новости, общий чат и бот OksanaVPN.</div>
+                        <div class="tg-section__subtitle">Новости, общий чат и бот Oksana VPN.</div>
                     </div>
                 </div>
 
