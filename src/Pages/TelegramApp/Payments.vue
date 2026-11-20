@@ -52,14 +52,16 @@ const isPromoAvailable = computed(() => (
         && [1, 3, 6, 12].includes(selectedPackage.value?.month)
 ));
 const normalizedPromoCode = computed(() => promoCode.value.trim().toUpperCase());
-const appliedPromo = computed(() => {
-    const preview = promoPreview.value;
-    return isPromoAvailable.value && preview?.month === selectedPackage.value?.month
-        && preview.code === normalizedPromoCode.value ? preview : null;
-});
+const hasAppliedPromo = computed(() => (
+    purchaseMode.value === 'PERSONAL' && promoPreview.value?.code === normalizedPromoCode.value
+));
+const promoForPackage = (item) => (
+    hasAppliedPromo.value ? promoPreview.value.packages[item?.month] ?? null : null
+);
+const appliedPromo = computed(() => promoForPackage(selectedPackage.value));
 const mustApplyPromo = computed(() => Boolean(isPromoAvailable.value && normalizedPromoCode.value && !appliedPromo.value));
 
-watch([promoCode, selectedPackage, purchaseMode], () => {
+watch([promoCode, packages, purchaseMode], () => {
     promoRevision += 1;
     promoPreview.value = null;
     promoError.value = '';
@@ -110,8 +112,9 @@ const durationText = (item) => {
 };
 
 const paymentBreakdown = (item) => {
-    if (item.month === appliedPromo.value?.month) {
-        return `С промокодом ${appliedPromo.value.code} к оплате ${formatPrice(appliedPromo.value.payable_now)}`;
+    const promo = promoForPackage(item);
+    if (promo) {
+        return `Стоимость подписки ${formatPrice(promo.price)}`;
     }
 
     const payableNow = Number(item.payable_now ?? item.price ?? 0);
@@ -139,9 +142,9 @@ const promoBenefitText = (promo) => {
         case 'bonus_days':
             return `Дополнительные дни подписки — ${promo.value}`;
         case 'percentage_discount':
-            return `Скидка ${Number(promo.value).toLocaleString('ru-RU')}% — ${formatPrice(promo.discount_amount)}`;
+            return `Скидка ${Number(promo.value).toLocaleString('ru-RU')}% на подписку`;
         default:
-            return `Скидка ${formatPrice(promo.discount_amount)}`;
+            return `Скидка до ${formatPrice(promo.value)} на подписку`;
     }
 };
 const promoValidationError = (requestError) => requestError?.response?.data?.errors?.promo_code?.[0];
@@ -152,9 +155,7 @@ const marketingPrice = (item) => {
         return 'Бесплатно';
     }
 
-    return formatPrice(appliedPromo.value && item?.month === appliedPromo.value.month
-        ? appliedPromo.value.payable_now
-        : item?.payable_now ?? item?.price ?? 0);
+    return formatPrice(promoForPackage(item)?.payable_now ?? item?.payable_now ?? item?.price ?? 0);
 };
 
 const originalPrice = (item) => {
@@ -262,17 +263,27 @@ const applyPromo = async () => {
         return;
     }
 
-    const month = selectedPackage.value.month;
     const code = normalizedPromoCode.value;
+    const paidPackages = availablePackages.value.filter((item) => !item.is_trial && [1, 3, 6, 12].includes(item.month));
     const revision = promoRevision;
     promoPreview.value = null;
     promoError.value = '';
     previewingPromo.value = true;
 
     try {
-        const { data } = await telegramMiniAppApi.post(telegramMiniAppEndpoints.previewPromoCode, { month, promo_code: code });
+        const results = await Promise.allSettled(paidPackages.map(async ({ month }) => {
+            const { data } = await telegramMiniAppApi.post(telegramMiniAppEndpoints.previewPromoCode, { month, promo_code: code });
+            return { ...data, month };
+        }));
+        const failure = results.find((result) => result.status === 'rejected');
+        if (failure) {
+            throw failure.reason;
+        }
         if (revision === promoRevision) {
-            promoPreview.value = { ...data, month };
+            promoPreview.value = {
+                code,
+                packages: Object.fromEntries(results.map(({ value }) => [value.month, value])),
+            };
         }
     } catch (requestError) {
         if (revision === promoRevision) {
@@ -558,8 +569,9 @@ onMounted(async () => {
                                 autocapitalize="characters"
                                 spellcheck="false"
                                 :disabled="previewingPromo || payingMonth !== null"
+                                :readonly="hasAppliedPromo"
                                 :aria-invalid="Boolean(promoError)"
-                                :aria-describedby="promoError ? 'checkout-promo-error' : undefined"
+                                :aria-describedby="promoError ? 'checkout-promo-error' : (hasAppliedPromo ? 'checkout-promo-benefit' : undefined)"
                             />
                             <button
                                 v-if="promoCode"
@@ -573,17 +585,16 @@ onMounted(async () => {
                             </button>
                         </div>
                     </div>
-                    <div class="tg-actions">
+                    <p v-if="appliedPromo" id="checkout-promo-benefit" class="tg-promo-benefit" role="status">
+                        <AppIcon name="gift" aria-hidden="true" />
+                        <span>{{ promoBenefitText(appliedPromo) }}</span>
+                    </p>
+                    <div v-if="!hasAppliedPromo" class="tg-actions">
                         <button class="tg-button tg-button--secondary" type="submit" :disabled="!mustApplyPromo || previewingPromo || payingMonth !== null">
                             {{ previewingPromo ? 'Проверяем…' : 'Применить' }}
                         </button>
                     </div>
                     <p v-if="promoError" id="checkout-promo-error" class="tg-error" role="alert">{{ promoError }}</p>
-                    <div v-if="appliedPromo" class="tg-surface-card tg-stack" role="status">
-                        <p>{{ promoBenefitText(appliedPromo) }}</p>
-                        <p>Стоимость подписки {{ formatPrice(appliedPromo.price) }}</p>
-                        <p>К оплате сейчас {{ formatPrice(appliedPromo.payable_now) }}</p>
-                    </div>
                 </form>
 
                 <div v-if="availablePackages.length === 0" class="tg-state-card">
@@ -722,6 +733,16 @@ onMounted(async () => {
 </template>
 
 <style scoped>
+.tg-promo-benefit {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin: 0;
+    color: var(--tg-success);
+    font-size: 13px;
+    line-height: 18px;
+}
+
 .tg-promo-input {
     position: relative;
 }

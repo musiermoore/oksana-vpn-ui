@@ -15,6 +15,12 @@ const quote = {
     code: 'TOLSTYD', benefit: 'percentage_discount', value: 20,
     discount_amount: 37.25, price: 173.25, payable_now: 53.25,
 };
+const quotes = {
+    1: quote,
+    3: { ...quote, discount_amount: 125.5, price: 621.75, payable_now: 381.75 },
+    6: { ...quote, discount_amount: 240, price: 1200, payable_now: 720 },
+    12: { ...quote, discount_amount: 455.75, price: 2164.25, payable_now: 1204.25 },
+};
 const packages = [
     { month: 0, days: 2, price: 0, payable_now: 0, is_trial: true },
     ...[1, 3, 6, 12].map((month) => ({
@@ -113,7 +119,7 @@ beforeEach(async () => {
         return { data: { subscription_expires_at: '2027-01-01', balance: 80 } };
     } };
     requests = [];
-    respond = (url) => url === endpoints.previewPromoCode ? { ...quote } : { status: 'activated' };
+    respond = (url, payload) => url === endpoints.previewPromoCode ? { ...quotes[payload.month] } : { status: 'activated' };
     api.defaults.adapter = async (config) => {
         let data;
         if (config.method === 'get') {
@@ -148,20 +154,23 @@ after(() => {
 });
 
 test('promo preview uses the authenticated client and server totals for every paid duration', async () => {
-    view.promoCode.value = ' tolstyd ';
+    await applyPromo();
     for (const month of [1, 3, 6, 12]) {
         view.selectPackage(month);
-        await view.applyPromo();
-        assert.equal(view.appliedPromo.value.price, quote.price);
-        assert.equal(view.marketingPrice(view.selectedPackage.value), view.formatPrice(quote.payable_now));
+        assert.equal(view.appliedPromo.value.price, quotes[month].price);
+        assert.equal(view.marketingPrice(view.selectedPackage.value), view.formatPrice(quotes[month].payable_now));
     }
     assert.deepEqual(requests, [1, 3, 6, 12].map((month) => ({
         url: endpoints.previewPromoCode, payload: { month, promo_code: 'TOLSTYD' }, authorization: 'Bearer test-token',
     })));
     const html = await renderPayments();
     assert.match(html, /Стоимость подписки 173,25 ₽/);
-    assert.match(html, /К оплате сейчас 53,25 ₽/);
-    assert.match(html, /Скидка 20% — 37,25 ₽/);
+    assert.match(html, /Стоимость подписки 2\s164,25 ₽/);
+    assert.match(html, /53,25 ₽/);
+    assert.match(html, /Скидка 20% на подписку/);
+    assert.match(html, /id="checkout-promo-benefit"[^>]*class="tg-promo-benefit"/);
+    assert.match(html, /readonly/);
+    assert.doesNotMatch(html, />\s*Применить\s*</);
     assert.match(html, /aria-label="Очистить промокод"/);
     assert.doesNotMatch(html, /Убрать промокод|checkout-promo-hint/);
     assert.match(html, /class="tg-section__subtitle"[^>]*>Сумма к оплате уже учитывает доступный баланс и скидки\./);
@@ -175,20 +184,71 @@ test('editing a code and restoring its previous value requires a new preview', a
     assert.equal(view.appliedPromo.value, null);
     assert.equal(view.mustApplyPromo.value, true);
     await view.buySubscription();
-    assert.equal(requests.length, 1);
+    assert.equal(requests.length, 4);
     await view.applyPromo();
     await view.buySubscription();
     assert.equal(requests.at(-1).payload.promo_code, 'TOLSTYD');
 });
 
-test('switching packages and switching back requires a new preview', async () => {
+test('switching paid packages reuses each package quote and sends the selected duration at checkout', async () => {
     await applyPromo();
     view.selectPackage(3);
-    view.selectPackage(1);
-    assert.equal(view.appliedPromo.value, null);
+    assert.equal(view.appliedPromo.value.price, quotes[3].price);
+    assert.equal(view.mustApplyPromo.value, false);
+    await view.buySubscription();
+    assert.equal(requests.length, 5);
+    assert.equal(requests.at(-1).payload.month, 3);
+    assert.equal(requests.at(-1).payload.promo_code, 'TOLSTYD');
+});
+
+test('clearing an applied promo restores every regular price and the apply button', async () => {
+    await applyPromo();
+    view.promoCode.value = '';
+    assert.equal(view.hasAppliedPromo.value, false);
+    for (const item of packages.filter((item) => !item.is_trial)) {
+        assert.equal(view.promoForPackage(item), null);
+        assert.equal(view.marketingPrice(item), view.formatPrice(item.payable_now));
+    }
+    const html = await renderPayments();
+    assert.match(html, />\s*Применить\s*</);
+    assert.doesNotMatch(html, /readonly|id="checkout-promo-benefit"/);
+});
+
+test('a refreshed package list invalidates all cached promo prices', async () => {
+    await applyPromo();
+    view.packages.value = [...view.packages.value];
+    assert.equal(view.hasAppliedPromo.value, false);
     assert.equal(view.mustApplyPromo.value, true);
     await view.buySubscription();
-    assert.equal(requests.length, 1);
+    assert.equal(requests.length, 4);
+});
+
+test('a failed package preview waits for the whole batch and leaves all prices unapplied', async () => {
+    const pending = deferred();
+    respond = (url, payload) => {
+        if (payload.month === 3) {
+            throw { response: { status: 422, data: { message: 'Промокод недействителен.' } } };
+        }
+        if (payload.month === 12) return pending.promise;
+        return { ...quotes[payload.month] };
+    };
+    view.promoCode.value = 'TOLSTYD';
+    const preview = view.applyPromo();
+    await flushRequests();
+    assert.equal(view.previewingPromo.value, true);
+    assert.equal(view.hasAppliedPromo.value, false);
+    await view.applyPromo();
+    await view.buySubscription();
+    assert.equal(requests.length, 4);
+    pending.resolve({ ...quotes[12] });
+    await preview;
+    assert.equal(view.previewingPromo.value, false);
+    assert.equal(view.promoError.value, 'Промокод недействителен.');
+    for (const item of packages.filter((item) => !item.is_trial)) {
+        assert.equal(view.promoForPackage(item), null);
+        assert.equal(view.marketingPrice(item), view.formatPrice(item.payable_now));
+    }
+    assert.match(await renderPayments(), />\s*Применить\s*</);
 });
 
 test('late preview responses cannot restore a quote after the input changes back', async () => {
@@ -199,7 +259,7 @@ test('late preview responses cannot restore a quote after the input changes back
     await view.applyPromo();
     await view.buySubscription();
     await flushRequests();
-    assert.equal(requests.length, 1);
+    assert.equal(requests.length, 4);
     view.promoCode.value = 'OTHER';
     view.promoCode.value = 'TOLSTYD';
     pending.resolve({ ...quote });
@@ -208,12 +268,12 @@ test('late preview responses cannot restore a quote after the input changes back
     assert.equal(view.previewingPromo.value, false);
 });
 
-test('late preview errors are ignored after the package changes', async () => {
+test('late preview errors are ignored after the package list is refreshed', async () => {
     const pending = deferred();
     respond = () => pending.promise;
     view.promoCode.value = 'TOLSTYD';
     const preview = view.applyPromo();
-    view.selectPackage(3);
+    view.packages.value = [...view.packages.value];
     pending.reject({ response: { status: 422, data: { message: 'Срок промокода истёк.' } } });
     await preview;
     assert.equal(view.promoError.value, '');
@@ -245,8 +305,8 @@ test('duplicate checkout and preview submissions are blocked while payment is pe
     await view.buySubscription();
     await view.applyPromo();
     await flushRequests();
-    assert.equal(requests.length, 2);
-    assert.deepEqual(requests[1].payload, {
+    assert.equal(requests.length, 5);
+    assert.deepEqual(requests[4].payload, {
         month: 1, return_url: window.location.href, purchase_type: 'PERSONAL', promo_code: 'TOLSTYD',
     });
     pending.resolve({ status: 'activated' });
@@ -261,7 +321,7 @@ test('a fully covered promo purchase offers immediate activation', async () => {
         ? { ...quote, benefit: 'fixed_discount', value: 200, discount_amount: 200, price: 0, payable_now: 0 }
         : { status: 'activated' };
     await applyPromo();
-    assert.match(await renderPayments(), /К оплате сейчас 0 ₽/);
+    assert.equal(view.marketingPrice(view.selectedPackage.value), '0 ₽');
     assert.match(await renderPayments(), /Активировать подписку/);
     await view.buySubscription();
     assert.equal(view.screen.value, 'activated');
@@ -286,7 +346,7 @@ test('checkout rejection invalidates the promo and shows its domain error by the
     assert.equal(view.appliedPromo.value, null);
     assert.equal(view.mustApplyPromo.value, true);
     await view.buySubscription();
-    assert.equal(requests.length, 2);
+    assert.equal(requests.length, 5);
 });
 
 test('trial and gift checkout omit promos and keep their existing success paths', async () => {
@@ -308,11 +368,11 @@ test('trial and gift checkout omit promos and keep their existing success paths'
     assert.equal(view.screen.value, 'gift-created');
 });
 
-test('all five benefits use the server value and actual discount amount', () => {
+test('the gift caption describes all five benefits using the server campaign value', () => {
     const cases = [
         ['balance_deposit', 200, 'Пополнение баланса для оплаты 200 ₽'],
-        ['fixed_discount', 200, 'Скидка 75 ₽'],
-        ['percentage_discount', 20, 'Скидка 20% — 75 ₽'],
+        ['fixed_discount', 200, 'Скидка до 200 ₽ на подписку'],
+        ['percentage_discount', 20, 'Скидка 20% на подписку'],
         ['bonus_days', 5, 'Дополнительные дни подписки — 5'],
         ['balance_cashback', 200, 'На баланс после оплаты 200 ₽'],
     ];
