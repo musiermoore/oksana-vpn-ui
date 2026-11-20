@@ -482,15 +482,15 @@ onMounted(async () => {
                 <p v-if="packageLoadError" class="tg-error">{{ packageLoadError }}</p>
 
                 <div class="tg-surface-card tg-stack">
-                    <div class="tg-section__title">Активировать подарочный код</div>
+                    <div class="tg-section__title">Подарочный код</div>
 
                     <div class="tg-field">
-                        <label for="activation-code">Код</label>
                         <input
                             id="activation-code"
                             v-model="activationCode"
                             class="tg-input"
                             type="text"
+                            aria-label="Подарочный код"
                             placeholder="Например, ABCD EFGH JKLM"
                         >
                     </div>

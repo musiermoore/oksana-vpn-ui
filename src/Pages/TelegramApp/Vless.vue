@@ -67,18 +67,23 @@ const preferredLinks = computed(() => ([
     {
         key: 'incy_deep_link',
         title: 'Incy',
+        icon: 'spark',
         url: links.value?.incy_deep_link ?? '',
         target: 'incy',
     },
     {
         key: 'happ_deep_link',
         title: 'Happ',
+        icon: 'activity',
+        iconClass: 'tg-list-card__icon--blue',
         url: links.value?.happ_deep_link ?? '',
         target: 'happ',
     },
     {
         key: 'v2raytun_deep_link',
         title: 'V2RayTun',
+        icon: 'nodes',
+        iconClass: 'tg-list-card__icon--success',
         url: links.value?.v2raytun_deep_link ?? '',
         target: 'v2raytun',
     },
@@ -236,27 +241,26 @@ onBeforeUnmount(() => {
                         <AppIcon name="chevronLeft" />
                         <span>Назад ко всем конфигам</span>
                     </Link>
-                    <h2>Xray / VLESS</h2>
-                    <p>Выберите приложение для подключения или QR-код.</p>
+                    <h2 class="tg-section__title">Доступные клиенты</h2>
                 </div>
 
-                <div v-for="item in preferredLinks" :key="item.key" class="tg-list-card">
-                    <div class="tg-list-card__icon">
-                        <AppIcon name="shield" />
+                <div v-for="item in preferredLinks" :key="item.key" class="tg-list-card tg-vless-client">
+                    <div class="tg-list-card__icon" :class="item.iconClass">
+                        <AppIcon :name="item.icon" />
                     </div>
                     <div class="tg-list-card__body">
                         <div class="tg-list-card__title">{{ item.title }}</div>
-                        <div class="tg-inline-actions tg-inline-actions--icons">
-                            <button class="tg-icon-button tg-icon-button--soft" type="button" :aria-label="`Открыть ${item.title}`" :title="`Открыть ${item.title}`" @click="openTelegramExternalLink(item.url)">
-                                <AppIcon name="bolt" />
-                            </button>
-                            <button class="tg-icon-button tg-copy-button" type="button" :aria-label="`Скопировать ссылку ${item.title}`" :title="`Скопировать ссылку ${item.title}`" @click="copyText(item.url)">
-                                <AppIcon name="copy" />
-                            </button>
-                            <button class="tg-icon-button" type="button" :aria-label="`Показать QR-код ${item.title}`" :title="`Показать QR-код ${item.title}`" :disabled="loadingQr" @click="openQrResult(item.target)">
-                                <AppIcon name="qrcode" />
-                            </button>
-                        </div>
+                    </div>
+                    <div class="tg-list-card__aside tg-vless-client__actions">
+                        <button class="tg-icon-button tg-icon-button--soft" type="button" :aria-label="`Открыть ${item.title}`" :title="`Открыть ${item.title}`" @click="openTelegramExternalLink(item.url)">
+                            <AppIcon name="bolt" />
+                        </button>
+                        <button class="tg-icon-button tg-copy-button" type="button" :aria-label="`Скопировать ссылку ${item.title}`" :title="`Скопировать ссылку ${item.title}`" @click="copyText(item.url)">
+                            <AppIcon name="copy" />
+                        </button>
+                        <button class="tg-icon-button" type="button" :aria-label="`Показать QR-код ${item.title}`" :title="`Показать QR-код ${item.title}`" :disabled="loadingQr" @click="openQrResult(item.target)">
+                            <AppIcon name="qrcode" />
+                        </button>
                     </div>
                 </div>
 
@@ -320,3 +324,33 @@ onBeforeUnmount(() => {
         </template>
     </TelegramMiniAppFrame>
 </template>
+
+<style scoped>
+.tg-vless-client {
+    gap: 8px;
+    padding: 12px;
+}
+
+.tg-vless-client .tg-list-card__icon {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+}
+
+.tg-vless-client .tg-list-card__title {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.tg-vless-client__actions {
+    gap: 4px;
+}
+
+.tg-vless-client__actions .tg-icon-button {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+}
+</style>

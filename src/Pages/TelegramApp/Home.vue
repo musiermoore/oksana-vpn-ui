@@ -256,7 +256,7 @@ onMounted(async () => {
                     </Link>
                     <Link :href="telegramMiniAppRoutes.credentials" class="tg-button tg-button--secondary">
                         <AppIcon name="key" />
-                        <span>Данные для входа</span>
+                        <span>Данные для входа на сайте</span>
                     </Link>
                 </div>
             </section>

@@ -50,6 +50,22 @@ const isActive = (item) => item.keys.some((prefix) => (
         : currentPath.value === prefix || currentPath.value.startsWith(`${prefix}/`)
 ));
 
+const pageIcon = computed(() => {
+    const icons = {
+        chats: 'chat',
+        credentials: 'key',
+        giveaway: 'gift',
+        login: 'key',
+        referrals: 'gift',
+        register: 'users',
+        support: 'headset',
+    };
+
+    return icons[currentPath.value.split('/')[1]]
+        ?? navItems.value.find(isActive)?.icon
+        ?? 'shield';
+});
+
 onMounted(() => {
     theme.value = resolveInitialTheme();
 });
@@ -76,7 +92,7 @@ watch(theme, (value) => {
             <header class="tg-topbar">
                 <div class="tg-brand">
                     <div class="tg-brand__mark" aria-hidden="true">
-                        <AppIcon name="shield" />
+                        <AppIcon :name="pageIcon" />
                     </div>
 
                     <div class="tg-brand__copy">

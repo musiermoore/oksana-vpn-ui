@@ -201,10 +201,6 @@ onBeforeUnmount(() => {
         <template v-else>
             <section v-if="step === 'hub'" class="tg-section">
                 <div class="tg-page-header__copy">
-                    <div class="tg-tag tg-tag--primary">
-                        <AppIcon name="shield" />
-                        <span>Конфиги</span>
-                    </div>
                     <h2>Выберите тип конфигов</h2>
                 </div>
 
