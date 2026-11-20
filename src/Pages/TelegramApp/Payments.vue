@@ -1,6 +1,6 @@
 <script setup>
 import Link from '../../Shared/SpaLink.vue';
-import { computed, onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import AppIcon from '../../Shared/AppIcon.vue';
 import TelegramMiniAppFrame from '../../Shared/TelegramMiniAppFrame.vue';
 import {
@@ -25,6 +25,11 @@ const activationCode = ref('');
 const activationError = ref('');
 const activationStatus = ref('');
 const activatingCode = ref(false);
+const promoCode = ref('');
+const promoPreview = ref(null);
+const promoError = ref('');
+const previewingPromo = ref(false);
+let promoRevision = 0;
 
 const availablePackages = computed(() => (
     purchaseMode.value === 'GIFT'
@@ -40,6 +45,25 @@ const selectedPackage = computed(() => (
     ?? availablePackages.value[0]
     ?? null
 ));
+
+const isPromoAvailable = computed(() => (
+    purchaseMode.value === 'PERSONAL'
+        && !selectedPackage.value?.is_trial
+        && [1, 3, 6, 12].includes(selectedPackage.value?.month)
+));
+const normalizedPromoCode = computed(() => promoCode.value.trim().toUpperCase());
+const appliedPromo = computed(() => {
+    const preview = promoPreview.value;
+    return isPromoAvailable.value && preview?.month === selectedPackage.value?.month
+        && preview.code === normalizedPromoCode.value ? preview : null;
+});
+const mustApplyPromo = computed(() => Boolean(isPromoAvailable.value && normalizedPromoCode.value && !appliedPromo.value));
+
+watch([promoCode, selectedPackage, purchaseMode], () => {
+    promoRevision += 1;
+    promoPreview.value = null;
+    promoError.value = '';
+}, { flush: 'sync' });
 
 const purchasedCodes = computed(() => user.value?.subscription_codes ?? []);
 const balanceAmount = computed(() => Number(user.value?.balance ?? 0));
@@ -86,6 +110,10 @@ const durationText = (item) => {
 };
 
 const paymentBreakdown = (item) => {
+    if (item.month === appliedPromo.value?.month) {
+        return `С промокодом ${appliedPromo.value.code} к оплате ${formatPrice(appliedPromo.value.payable_now)}`;
+    }
+
     const payableNow = Number(item.payable_now ?? item.price ?? 0);
     const totalPrice = Number(item.price ?? 0);
     const balanceApplied = Number(item.balance_applied ?? 0);
@@ -102,6 +130,21 @@ const paymentBreakdown = (item) => {
 };
 
 const formatPrice = (value) => `${Number(value ?? 0).toLocaleString('ru-RU')} ₽`;
+const promoBenefitText = (promo) => {
+    switch (promo.benefit) {
+        case 'balance_deposit':
+            return `Пополнение баланса для оплаты ${formatPrice(promo.value)}`;
+        case 'balance_cashback':
+            return `На баланс после оплаты ${formatPrice(promo.value)}`;
+        case 'bonus_days':
+            return `Дополнительные дни подписки — ${promo.value}`;
+        case 'percentage_discount':
+            return `Скидка ${Number(promo.value).toLocaleString('ru-RU')}% — ${formatPrice(promo.discount_amount)}`;
+        default:
+            return `Скидка ${formatPrice(promo.discount_amount)}`;
+    }
+};
+const promoValidationError = (requestError) => requestError?.response?.data?.errors?.promo_code?.[0];
 const roundMarketingPrice = (value) => Math.ceil(Number(value ?? 0) / 50) * 50;
 
 const marketingPrice = (item) => {
@@ -109,7 +152,9 @@ const marketingPrice = (item) => {
         return 'Бесплатно';
     }
 
-    return formatPrice(item?.payable_now ?? item?.price ?? 0);
+    return formatPrice(appliedPromo.value && item?.month === appliedPromo.value.month
+        ? appliedPromo.value.payable_now
+        : item?.payable_now ?? item?.price ?? 0);
 };
 
 const originalPrice = (item) => {
@@ -180,6 +225,9 @@ const openPackageSelectFor = async (mode) => {
     packageLoadError.value = '';
     error.value = '';
     purchaseMode.value = mode;
+    promoCode.value = '';
+    promoPreview.value = null;
+    promoError.value = '';
 
     try {
         await loadPackages();
@@ -204,12 +252,49 @@ const refreshAfterPayment = async () => {
     await loadProfile();
 };
 
+const selectPackage = (month) => {
+    selectedMonth.value = month;
+    promoError.value = '';
+};
+
+const applyPromo = async () => {
+    if (!mustApplyPromo.value || previewingPromo.value || payingMonth.value !== null) {
+        return;
+    }
+
+    const month = selectedPackage.value.month;
+    const code = normalizedPromoCode.value;
+    const revision = promoRevision;
+    promoPreview.value = null;
+    promoError.value = '';
+    previewingPromo.value = true;
+
+    try {
+        const { data } = await telegramMiniAppApi.post(telegramMiniAppEndpoints.previewPromoCode, { month, promo_code: code });
+        if (revision === promoRevision) {
+            promoPreview.value = { ...data, month };
+        }
+    } catch (requestError) {
+        if (revision === promoRevision) {
+            promoError.value = promoValidationError(requestError)
+                ?? normalizeTelegramAppError(requestError, 'Не удалось применить промокод.');
+        }
+    } finally {
+        previewingPromo.value = false;
+    }
+};
+
 const buySubscription = async () => {
     if (!selectedPackage.value) {
         error.value = 'Выберите тариф.';
         return;
     }
 
+    if (mustApplyPromo.value || previewingPromo.value || payingMonth.value !== null) {
+        return;
+    }
+
+    const promo = appliedPromo.value;
     payingMonth.value = selectedPackage.value.month;
     error.value = '';
 
@@ -218,6 +303,7 @@ const buySubscription = async () => {
             month: selectedPackage.value.month,
             return_url: window.location.href,
             purchase_type: purchaseMode.value,
+            ...(promo ? { promo_code: promo.code } : {}),
         });
 
         paymentResult.value = response.data ?? null;
@@ -241,7 +327,13 @@ const buySubscription = async () => {
 
         error.value = 'Не удалось получить ссылку на оплату.';
     } catch (requestError) {
-        error.value = normalizeTelegramAppError(requestError, 'Не удалось перейти к оплате.');
+        if (promo && requestError?.response?.status === 422) {
+            promoPreview.value = null;
+            promoError.value = promoValidationError(requestError)
+                ?? normalizeTelegramAppError(requestError, 'Проверьте промокод ещё раз.');
+        } else {
+            error.value = normalizeTelegramAppError(requestError, 'Не удалось перейти к оплате.');
+        }
     } finally {
         payingMonth.value = null;
     }
@@ -443,7 +535,7 @@ onMounted(async () => {
 
             <section v-else-if="screen === 'packages'" class="tg-section">
                 <div class="tg-page-header__copy">
-                    <button class="tg-link-button" type="button" @click="cancelPackageSelect">
+                    <button class="tg-link-button" type="button" :disabled="previewingPromo || payingMonth !== null" @click="cancelPackageSelect">
                         <AppIcon name="chevronLeft" />
                         <span>Назад</span>
                     </button>
@@ -466,7 +558,8 @@ onMounted(async () => {
                     class="tg-list-card tg-list-card--button"
                     :class="{ 'tg-list-card--selected': selectedMonth === item.month }"
                     type="button"
-                    @click="selectedMonth = item.month"
+                    :disabled="previewingPromo || payingMonth !== null"
+                    @click="selectPackage(item.month)"
                 >
                     <div class="tg-list-card__icon" :class="item.is_trial ? 'tg-list-card__icon--success' : 'tg-list-card__icon--warning'">
                         <AppIcon :name="item.is_trial ? 'circleCheck' : 'receipt'" />
@@ -482,27 +575,64 @@ onMounted(async () => {
                         </div>
                     </div>
                     <div class="tg-list-card__aside">
-                        <span class="tg-tag tg-tag--primary">{{ item.is_trial ? '0 ₽' : formatPrice(item.payable_now) }}</span>
+                        <span class="tg-tag tg-tag--primary">{{ item.is_trial ? '0 ₽' : marketingPrice(item) }}</span>
                     </div>
                 </button>
+
+                <form v-if="isPromoAvailable" class="tg-section" @submit.prevent="applyPromo">
+                    <div class="tg-field">
+                        <label for="checkout-promo-code">Промокод</label>
+                        <input
+                            id="checkout-promo-code"
+                            v-model="promoCode"
+                            class="tg-input"
+                            type="text"
+                            placeholder="Необязательно"
+                            maxlength="64"
+                            autocomplete="off"
+                            autocapitalize="characters"
+                            spellcheck="false"
+                            :disabled="previewingPromo || payingMonth !== null"
+                            :aria-invalid="Boolean(promoError)"
+                            :aria-describedby="promoError ? 'checkout-promo-error' : (mustApplyPromo ? 'checkout-promo-hint' : undefined)"
+                        />
+                    </div>
+                    <div class="tg-actions">
+                        <button class="tg-button tg-button--secondary" type="submit" :disabled="!mustApplyPromo || previewingPromo || payingMonth !== null">
+                            {{ previewingPromo ? 'Проверяем…' : 'Применить' }}
+                        </button>
+                        <button v-if="promoCode" class="tg-link-button" type="button" :disabled="previewingPromo || payingMonth !== null" @click="promoCode = ''">
+                            Убрать промокод
+                        </button>
+                    </div>
+                    <p v-if="promoError" id="checkout-promo-error" class="tg-error" role="alert">{{ promoError }}</p>
+                    <p v-else-if="mustApplyPromo" id="checkout-promo-hint" class="tg-caption">Примените промокод или уберите его, чтобы продолжить.</p>
+                    <div v-if="appliedPromo" class="tg-surface-card tg-stack" role="status">
+                        <p>{{ promoBenefitText(appliedPromo) }}</p>
+                        <p>Стоимость подписки {{ formatPrice(appliedPromo.price) }}</p>
+                        <p>К оплате сейчас {{ formatPrice(appliedPromo.payable_now) }}</p>
+                    </div>
+                </form>
 
                 <div class="tg-actions">
                     <button
                         class="tg-button"
                         type="button"
-                        :disabled="!selectedPackage || payingMonth !== null || availablePackages.length === 0"
+                        :disabled="!selectedPackage || payingMonth !== null || previewingPromo || mustApplyPromo"
                         @click="buySubscription"
                     >
                         <AppIcon :name="purchaseMode === 'GIFT' ? 'gift' : 'receipt'" />
                         <span>
                             {{
-                                payingMonth
+                                payingMonth !== null
                                     ? 'Создаём оплату...'
                                     : purchaseMode === 'GIFT'
                                         ? 'Получить подарочный код'
                                         : selectedPackage?.is_trial
                                             ? 'Активировать пробный доступ'
-                                            : 'Перейти к оплате'
+                                            : appliedPromo?.payable_now === 0
+                                                ? 'Активировать подписку'
+                                                : 'Перейти к оплате'
                             }}
                         </span>
                     </button>
@@ -569,7 +699,7 @@ onMounted(async () => {
                 <p>{{ paymentResult?.message || 'Для активации перейдите на страницу оплаты.' }}</p>
                 <div class="tg-note">
                     <strong>К оплате</strong>
-                    <p>{{ paymentResult?.deposit_amount ?? selectedPackage?.payable_now ?? 0 }} ₽</p>
+                    <p>{{ formatPrice(paymentResult?.deposit_amount ?? appliedPromo?.payable_now ?? selectedPackage?.payable_now ?? 0) }}</p>
                 </div>
                 <div class="tg-actions">
                     <button class="tg-button" type="button" @click="openTelegramExternalLink(paymentResult?.confirmation_url)">

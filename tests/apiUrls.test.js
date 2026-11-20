@@ -20,7 +20,7 @@ test('registration and other Mini App operations use the Mini App API base', () 
     const paths = [
         'auth/register', 'diagnostics/bootstrap',
         'subscription-packages', 'referrals/claim', 'giveaway/current', 'giveaway/summary',
-        'giveaway/participate', 'payments/subscriptions', 'payments/subscription-codes/activate',
+        'giveaway/participate', 'payments/subscriptions', 'payments/promo-codes/preview', 'payments/subscription-codes/activate',
         'wireguard/configs', 'wireguard/configs/abc/download', 'wireguard/configs/abc/qr-code',
         'wireguard/configs/abc/send-file', 'wireguard/configs/abc/send-qr', 'vless/link',
         'vless/qr-code', 'vless/send-qr', 'vless-wl/link', 'vless-wl/qr-code', 'vless-wl/send-qr',

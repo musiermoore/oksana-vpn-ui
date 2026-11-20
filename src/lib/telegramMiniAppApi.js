@@ -69,6 +69,7 @@ export const telegramMiniAppEndpoints = {
     giveawaySummary: 'giveaway/summary',
     giveawayParticipate: 'giveaway/participate',
     payment: 'payments/subscriptions',
+    previewPromoCode: 'payments/promo-codes/preview',
     activateSubscriptionCode: 'payments/subscription-codes/activate',
     wireguardConfigs: 'wireguard/configs',
     vlessLink: VLESS_LINK_API_PATH,
