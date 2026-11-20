@@ -3,6 +3,9 @@ import Link from '../../Shared/SpaLink.vue';
 import { computed, onBeforeUnmount, onMounted, ref } from 'vue';
 import AppIcon from '../../Shared/AppIcon.vue';
 import TelegramMiniAppFrame from '../../Shared/TelegramMiniAppFrame.vue';
+import incyIcon from '../../assets/clients/incy.jpg';
+import happIcon from '../../assets/clients/happ.jpg';
+import v2raytunIcon from '../../assets/clients/v2raytun.png';
 import {
     ensureTelegramAppSession,
     fetchTelegramBinary,
@@ -67,23 +70,21 @@ const preferredLinks = computed(() => ([
     {
         key: 'incy_deep_link',
         title: 'Incy',
-        icon: 'spark',
+        icon: incyIcon,
         url: links.value?.incy_deep_link ?? '',
         target: 'incy',
     },
     {
         key: 'happ_deep_link',
         title: 'Happ',
-        icon: 'activity',
-        iconClass: 'tg-list-card__icon--blue',
+        icon: happIcon,
         url: links.value?.happ_deep_link ?? '',
         target: 'happ',
     },
     {
         key: 'v2raytun_deep_link',
         title: 'V2RayTun',
-        icon: 'nodes',
-        iconClass: 'tg-list-card__icon--success',
+        icon: v2raytunIcon,
         url: links.value?.v2raytun_deep_link ?? '',
         target: 'v2raytun',
     },
@@ -245,9 +246,7 @@ onBeforeUnmount(() => {
                 </div>
 
                 <div v-for="item in preferredLinks" :key="item.key" class="tg-list-card tg-vless-client">
-                    <div class="tg-list-card__icon" :class="item.iconClass">
-                        <AppIcon :name="item.icon" />
-                    </div>
+                    <img :src="item.icon" class="tg-vless-client__icon" alt="" width="36" height="36">
                     <div class="tg-list-card__body">
                         <div class="tg-list-card__title">{{ item.title }}</div>
                     </div>
@@ -331,10 +330,13 @@ onBeforeUnmount(() => {
     padding: 12px;
 }
 
-.tg-vless-client .tg-list-card__icon {
+.tg-vless-client__icon {
+    display: block;
+    flex: 0 0 36px;
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: 8px;
+    object-fit: contain;
 }
 
 .tg-vless-client .tg-list-card__title {
